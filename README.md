@@ -28,24 +28,35 @@ studykarle/
 ├── index.html              # Main entry point
 ├── vercel.json             # Vercel SPA routing config
 ├── data/
-│   └── resources.json      # Source of truth for all resources
+│   └── resources.json      # Legacy snapshot (not used by app)
 ├── src/
-│   ├── data.js             # Static JS data module (generated from resources.json)
+│   ├── data.js             # Resource data used by the app
 │   ├── script.js           # App logic (router, renderer, search)
 │   └── styles.css          # Design system & component styles
 └── resources/               # Where you upload PDFs and images
     ├── year1/
     │   ├── sem1/
+    │   │   ├── basic-mechanical-engineering/
+    │   │   ├── engineering-chemistry/
+    │   │   ├── engineering-physics/
+    │   │   └── mathematics-1/
     │   └── sem2/
+    │       ├── basic-electrical-engineering/
+    │       └── mathematics-2/
     ├── year2/
     │   ├── sem1/
+    │   │   └── data-structures/
     │   └── sem2/
+    │       └── dbms/
     ├── year3/
     │   ├── sem1/
+    │   │   ├── computer-networks/
+    │   │   └── operating-systems/
     │   └── sem2/
+    │       └── software-engineering/
     └── year4/
-        ├── sem1/
-        └── sem2/
+        └── sem1/
+            └── machine-learning/
 ```
 
 ---
@@ -69,63 +80,88 @@ Then open: http://localhost:3000
 
 ---
 
-## Admin Workflow — Adding Resources
+## Adding New PDFs
 
-### Step 1: Upload the file
+### Step 1 — Upload PDF
 
-Place your PDF or image inside the correct folder:
+Upload the PDF inside the correct subject folder.
+
+Example:
 
 ```
-resources/year{N}/sem{N}/your-file.pdf
+resources/year1/sem1/engineering-chemistry/
 ```
 
-Use kebab-case filenames only:
+Example file:
+
 ```
-unit1-calculus-notes.pdf   ✅
-Unit 1 Calculus Notes.pdf  ❌
+resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf
 ```
 
-### Step 2: Add entry to `data/resources.json`
+**Current upload folders:**
+
+- Engineering Chemistry → `resources/year1/sem1/engineering-chemistry/`
+- Engineering Physics → `resources/year1/sem1/engineering-physics/`
+- Mathematics 1 → `resources/year1/sem1/mathematics-1/`
+- Basic Mechanical Engineering → `resources/year1/sem1/basic-mechanical-engineering/`
+- Mathematics 2 → `resources/year1/sem2/mathematics-2/`
+- Basic Electrical Engineering → `resources/year1/sem2/basic-electrical-engineering/`
+- Data Structures → `resources/year2/sem1/data-structures/`
+- DBMS → `resources/year2/sem2/dbms/`
+- Operating Systems → `resources/year3/sem1/operating-systems/`
+- Computer Networks → `resources/year3/sem1/computer-networks/`
+- Software Engineering → `resources/year3/sem2/software-engineering/`
+- Machine Learning → `resources/year4/sem1/machine-learning/`
+
+### Step 2 — Add Resource Entry
+
+Open:
+
+```
+src/data.js
+```
+
+Add a new object inside `RESOURCES_DATA`.
 
 ```json
 {
-  "id": "math-unit-1",
-  "title": "Mathematics Unit 1 — Calculus Notes",
-  "slug": "math-unit-1",
+  "id": "chem-a4-a5",
+  "title": "Engineering Chemistry Assignment A4 + A5",
+  "slug": "chem-a4-a5",
   "type": "pdf",
   "year": "year-1",
   "semester": "sem-1",
-  "subject": "mathematics-1",
-  "category": "notes",
-  "path": "/resources/year1/sem1/unit1-calculus-notes.pdf"
+  "subject": "engineering-chemistry",
+  "category": "assignment",
+  "path": "/resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf"
 }
 ```
 
-**Field reference:**
+**Required fields (keep in sync):**
 
-| Field | Values |
-|-------|--------|
-| `type` | `pdf`, `jpg`, `jpeg` |
-| `year` | `year-1`, `year-2`, `year-3`, `year-4` |
-| `semester` | `sem-1`, `sem-2` |
-| `category` | `notes`, `pyq`, `assignment`, `tutorial`, `paper` |
-| `path` | Must start with `/resources/...` |
+- `id` and `slug` must be unique, lowercase, and kebab-case (no spaces).
+- `title` should describe the resource clearly (used in cards, search, and viewer).
+- `category` controls filters (`notes`, `pyq`, `assignment`, `tutorial`, `paper`).
+- `year`, `semester`, and `subject` must match the folder you uploaded into.
+- `path` must exactly match the real file path (case-sensitive).
+- `type` must match the file type (`pdf`, `jpg`, `jpeg`).
 
-### Step 3: Sync `data/resources.json` → `src/data.js`
+**How the app resolves PDFs:**
 
-Copy the updated array from `resources.json` into the `RESOURCES_DATA` const in `src/data.js`.
+- The viewer, download, and share buttons use `path` directly from `RESOURCES_DATA`.
+- Year → Semester → Subject pages are built from `year`, `semester`, and `subject`.
 
-### Step 4: Push to GitHub
+**If any of these are wrong:**
 
-```bash
-git add .
-git commit -m "Add: math unit 1 notes"
-git push
-```
+- Wrong `path` → file won’t load, viewer shows “File Unavailable”.
+- Wrong `year/semester/subject` → resource appears in the wrong place or disappears from its section.
+- Duplicate `id`/`slug` → routing conflicts and broken resource pages.
 
-### Step 5: Vercel auto-deploys
+### Step 3 — Commit & Push
 
-The file appears automatically in the webapp after deployment.
+Push changes to GitHub.
+
+Vercel redeploys automatically.
 
 ---
 
