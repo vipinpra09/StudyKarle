@@ -28,7 +28,7 @@ studykarle/
 ├── index.html              # Main entry point
 ├── vercel.json             # Vercel SPA routing config
 ├── data/
-│   └── resources.json      # Legacy resource list (not used by app)
+│   └── resources.json      # Legacy snapshot (not used by app)
 ├── src/
 │   ├── data.js             # Resource data used by the app
 │   ├── script.js           # App logic (router, renderer, search)
@@ -36,20 +36,27 @@ studykarle/
 └── resources/               # Where you upload PDFs and images
     ├── year1/
     │   ├── sem1/
+    │   │   ├── basic-mechanical-engineering/
     │   │   ├── engineering-chemistry/
     │   │   ├── engineering-physics/
     │   │   └── mathematics-1/
     │   └── sem2/
+    │       ├── basic-electrical-engineering/
     │       └── mathematics-2/
     ├── year2/
     │   ├── sem1/
+    │   │   └── data-structures/
     │   └── sem2/
+    │       └── dbms/
     ├── year3/
     │   ├── sem1/
+    │   │   ├── computer-networks/
+    │   │   └── operating-systems/
     │   └── sem2/
+    │       └── software-engineering/
     └── year4/
-        ├── sem1/
-        └── sem2/
+        └── sem1/
+            └── machine-learning/
 ```
 
 ---
@@ -91,6 +98,21 @@ Example file:
 resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf
 ```
 
+**Current upload folders:**
+
+- Engineering Chemistry → `resources/year1/sem1/engineering-chemistry/`
+- Engineering Physics → `resources/year1/sem1/engineering-physics/`
+- Mathematics 1 → `resources/year1/sem1/mathematics-1/`
+- Basic Mechanical Engineering → `resources/year1/sem1/basic-mechanical-engineering/`
+- Mathematics 2 → `resources/year1/sem2/mathematics-2/`
+- Basic Electrical Engineering → `resources/year1/sem2/basic-electrical-engineering/`
+- Data Structures → `resources/year2/sem1/data-structures/`
+- DBMS → `resources/year2/sem2/dbms/`
+- Operating Systems → `resources/year3/sem1/operating-systems/`
+- Computer Networks → `resources/year3/sem1/computer-networks/`
+- Software Engineering → `resources/year3/sem2/software-engineering/`
+- Machine Learning → `resources/year4/sem1/machine-learning/`
+
 ### Step 2 — Add Resource Entry
 
 Open:
@@ -114,6 +136,26 @@ Add a new object inside `RESOURCES_DATA`.
   "path": "/resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf"
 }
 ```
+
+**Required fields (keep in sync):**
+
+- `id` and `slug` must be unique, lowercase, and kebab-case (no spaces).
+- `title` should describe the resource clearly (used in cards, search, and viewer).
+- `category` controls filters (`notes`, `pyq`, `assignment`, `tutorial`, `paper`).
+- `year`, `semester`, and `subject` must match the folder you uploaded into.
+- `path` must exactly match the real file path (case-sensitive).
+- `type` must match the file type (`pdf`, `jpg`, `jpeg`).
+
+**How the app resolves PDFs:**
+
+- The viewer, download, and share buttons use `path` directly from `RESOURCES_DATA`.
+- Year → Semester → Subject pages are built from `year`, `semester`, and `subject`.
+
+**If any of these are wrong:**
+
+- Wrong `path` → file won’t load, viewer shows “File Unavailable”.
+- Wrong `year/semester/subject` → resource appears in the wrong place or disappears from its section.
+- Duplicate `id`/`slug` → routing conflicts and broken resource pages.
 
 ### Step 3 — Commit & Push
 
