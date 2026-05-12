@@ -10,7 +10,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "mathematics-1",
     "category": "notes",
-    "path": "/resources/year1/sem1/unit1-calculus-notes.pdf"
+    "path": "/resources/year1/sem1/mathematics-1/unit1-calculus-notes.pdf"
   },
   {
     "id": "physics-unit-1",
@@ -21,7 +21,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "engineering-physics",
     "category": "notes",
-    "path": "/resources/year1/sem1/physics-unit1-notes.pdf"
+    "path": "/resources/year1/sem1/engineering-physics/physics-unit1-notes.pdf"
   },
   {
     "id": "chemistry-pyq-2023",
@@ -32,7 +32,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "engineering-chemistry",
     "category": "pyq",
-    "path": "/resources/year1/sem1/chemistry-pyq-2023.pdf"
+    "path": "/resources/year1/sem1/engineering-chemistry/chemistry-pyq-2023.pdf"
   },
   {
     "id": "bme-assignment-1",
@@ -43,7 +43,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "basic-mechanical-engineering",
     "category": "assignment",
-    "path": "/resources/year1/sem1/bme-assignment-1.pdf"
+    "path": "/resources/year1/sem1/basic-mechanical-engineering/bme-assignment-1.pdf"
   },
   {
     "id": "math2-unit-1",
@@ -54,7 +54,7 @@ const RESOURCES_DATA = [
     "semester": "sem-2",
     "subject": "mathematics-2",
     "category": "notes",
-    "path": "/resources/year1/sem2/math2-unit1-notes.pdf"
+    "path": "/resources/year1/sem2/mathematics-2/math2-unit1-notes.pdf"
   },
   {
     "id": "bee-unit-2",
@@ -65,7 +65,7 @@ const RESOURCES_DATA = [
     "semester": "sem-2",
     "subject": "basic-electrical-engineering",
     "category": "notes",
-    "path": "/resources/year1/sem2/bee-unit2-notes.pdf"
+    "path": "/resources/year1/sem2/basic-electrical-engineering/bee-unit2-notes.pdf"
   },
   {
     "id": "ds-unit-1",
@@ -76,7 +76,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "data-structures",
     "category": "notes",
-    "path": "/resources/year2/sem1/ds-unit1-notes.pdf"
+    "path": "/resources/year2/sem1/data-structures/ds-unit1-notes.pdf"
   },
   {
     "id": "ds-pyq-2022",
@@ -87,7 +87,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "data-structures",
     "category": "pyq",
-    "path": "/resources/year2/sem1/ds-pyq-2022.pdf"
+    "path": "/resources/year2/sem1/data-structures/ds-pyq-2022.pdf"
   },
   {
     "id": "dbms-unit-1",
@@ -98,7 +98,7 @@ const RESOURCES_DATA = [
     "semester": "sem-2",
     "subject": "dbms",
     "category": "notes",
-    "path": "/resources/year2/sem2/dbms-unit1-notes.pdf"
+    "path": "/resources/year2/sem2/dbms/dbms-unit1-notes.pdf"
   },
   {
     "id": "os-unit-2",
@@ -109,7 +109,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "operating-systems",
     "category": "notes",
-    "path": "/resources/year3/sem1/os-unit2-notes.pdf"
+    "path": "/resources/year3/sem1/operating-systems/os-unit2-notes.pdf"
   },
   {
     "id": "cn-tutorial-1",
@@ -120,7 +120,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "computer-networks",
     "category": "tutorial",
-    "path": "/resources/year3/sem1/cn-tutorial-1.pdf"
+    "path": "/resources/year3/sem1/computer-networks/cn-tutorial-1.pdf"
   },
   {
     "id": "se-unit-1",
@@ -131,7 +131,7 @@ const RESOURCES_DATA = [
     "semester": "sem-2",
     "subject": "software-engineering",
     "category": "notes",
-    "path": "/resources/year3/sem2/se-unit1-notes.pdf"
+    "path": "/resources/year3/sem2/software-engineering/se-unit1-notes.pdf"
   },
   {
     "id": "ml-unit-1",
@@ -142,7 +142,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "machine-learning",
     "category": "notes",
-    "path": "/resources/year4/sem1/ml-unit1-notes.pdf"
+    "path": "/resources/year4/sem1/machine-learning/ml-unit1-notes.pdf"
   },
   {
     "id": "ml-pyq-2023",
@@ -153,7 +153,7 @@ const RESOURCES_DATA = [
     "semester": "sem-1",
     "subject": "machine-learning",
     "category": "pyq",
-    "path": "/resources/year4/sem1/ml-pyq-2023.pdf"
+    "path": "/resources/year4/sem1/machine-learning/ml-pyq-2023.pdf"
   }
 ];
 

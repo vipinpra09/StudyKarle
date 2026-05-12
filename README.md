@@ -28,15 +28,19 @@ studykarle/
 ├── index.html              # Main entry point
 ├── vercel.json             # Vercel SPA routing config
 ├── data/
-│   └── resources.json      # Source of truth for all resources
+│   └── resources.json      # Legacy resource list (not used by app)
 ├── src/
-│   ├── data.js             # Static JS data module (generated from resources.json)
+│   ├── data.js             # Resource data used by the app
 │   ├── script.js           # App logic (router, renderer, search)
 │   └── styles.css          # Design system & component styles
 └── resources/               # Where you upload PDFs and images
     ├── year1/
     │   ├── sem1/
+    │   │   ├── engineering-chemistry/
+    │   │   ├── engineering-physics/
+    │   │   └── mathematics-1/
     │   └── sem2/
+    │       └── mathematics-2/
     ├── year2/
     │   ├── sem1/
     │   └── sem2/
@@ -69,63 +73,53 @@ Then open: http://localhost:3000
 
 ---
 
-## Admin Workflow — Adding Resources
+## Adding New PDFs
 
-### Step 1: Upload the file
+### Step 1 — Upload PDF
 
-Place your PDF or image inside the correct folder:
+Upload the PDF inside the correct subject folder.
+
+Example:
 
 ```
-resources/year{N}/sem{N}/your-file.pdf
+resources/year1/sem1/engineering-chemistry/
 ```
 
-Use kebab-case filenames only:
+Example file:
+
 ```
-unit1-calculus-notes.pdf   ✅
-Unit 1 Calculus Notes.pdf  ❌
+resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf
 ```
 
-### Step 2: Add entry to `data/resources.json`
+### Step 2 — Add Resource Entry
+
+Open:
+
+```
+src/data.js
+```
+
+Add a new object inside `RESOURCES_DATA`.
 
 ```json
 {
-  "id": "math-unit-1",
-  "title": "Mathematics Unit 1 — Calculus Notes",
-  "slug": "math-unit-1",
+  "id": "chem-a4-a5",
+  "title": "Engineering Chemistry Assignment A4 + A5",
+  "slug": "chem-a4-a5",
   "type": "pdf",
   "year": "year-1",
   "semester": "sem-1",
-  "subject": "mathematics-1",
-  "category": "notes",
-  "path": "/resources/year1/sem1/unit1-calculus-notes.pdf"
+  "subject": "engineering-chemistry",
+  "category": "assignment",
+  "path": "/resources/year1/sem1/engineering-chemistry/Chem_A4+A5.pdf"
 }
 ```
 
-**Field reference:**
+### Step 3 — Commit & Push
 
-| Field | Values |
-|-------|--------|
-| `type` | `pdf`, `jpg`, `jpeg` |
-| `year` | `year-1`, `year-2`, `year-3`, `year-4` |
-| `semester` | `sem-1`, `sem-2` |
-| `category` | `notes`, `pyq`, `assignment`, `tutorial`, `paper` |
-| `path` | Must start with `/resources/...` |
+Push changes to GitHub.
 
-### Step 3: Sync `data/resources.json` → `src/data.js`
-
-Copy the updated array from `resources.json` into the `RESOURCES_DATA` const in `src/data.js`.
-
-### Step 4: Push to GitHub
-
-```bash
-git add .
-git commit -m "Add: math unit 1 notes"
-git push
-```
-
-### Step 5: Vercel auto-deploys
-
-The file appears automatically in the webapp after deployment.
+Vercel redeploys automatically.
 
 ---
 
