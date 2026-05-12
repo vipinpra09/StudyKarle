@@ -33,20 +33,19 @@ studykarle/
 │   ├── data.js             # Static JS data module (generated from resources.json)
 │   ├── script.js           # App logic (router, renderer, search)
 │   └── styles.css          # Design system & component styles
-└── public/
-    └── resources/          # Where you upload PDFs and images
-        ├── year1/
-        │   ├── sem1/
-        │   └── sem2/
-        ├── year2/
-        │   ├── sem1/
-        │   └── sem2/
-        ├── year3/
-        │   ├── sem1/
-        │   └── sem2/
-        └── year4/
-            ├── sem1/
-            └── sem2/
+└── resources/               # Where you upload PDFs and images
+    ├── year1/
+    │   ├── sem1/
+    │   └── sem2/
+    ├── year2/
+    │   ├── sem1/
+    │   └── sem2/
+    ├── year3/
+    │   ├── sem1/
+    │   └── sem2/
+    └── year4/
+        ├── sem1/
+        └── sem2/
 ```
 
 ---
@@ -77,7 +76,7 @@ Then open: http://localhost:3000
 Place your PDF or image inside the correct folder:
 
 ```
-public/resources/year{N}/sem{N}/your-file.pdf
+resources/year{N}/sem{N}/your-file.pdf
 ```
 
 Use kebab-case filenames only:
