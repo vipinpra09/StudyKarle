@@ -158,7 +158,14 @@ ul, ol { list-style: none; }
   font-weight: 700;
 }
 
-.logo span { color: var(--accent); }
+.logo .logo-name span { color: var(--accent); }
+
+.logo-by {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
 
 .header-search {
   flex: 1;
@@ -1050,6 +1057,8 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
 .site-footer a {
   color: var(--accent);
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   transition: opacity var(--t);
 }
 .site-footer a:hover { opacity: .75; }
