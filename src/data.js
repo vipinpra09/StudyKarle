@@ -1,6 +1,4 @@
-// StudyKarle — Static Data Module
-// Auto-generated from data/resources.json
-// DO NOT edit directly. Update resources.json instead.
+
 
 const RESOURCES_DATA = [
   {
