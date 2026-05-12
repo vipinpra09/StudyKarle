@@ -34,7 +34,7 @@ const RESOURCES_DATA = [
     "category": "pyq",
     "path": "/resources/year1/sem1/engineering-chemistry/chemistry-pyq-2023.pdf"
   },
-  {
+ {
   "id": "chem-lab",
   "title": "Chem Lab",
   "slug": "chem-lab",
@@ -44,7 +44,7 @@ const RESOURCES_DATA = [
   "subject": "engineering-chemistry",
   "category": "notes",
   "path": "/resources/year1/sem1/engineering-chemistry/Chem_Lab.pdf"
-  },
+ },
   {
     "id": "bme-assignment-1",
     "title": "Basic Mechanical Engineering Assignment 1",
