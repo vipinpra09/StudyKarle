@@ -67,62 +67,7 @@ const RESOURCES_DATA = [
     "category": "notes",
     "path": "/resources/year1/sem2/electrical/unit1/ch 1 important question (1).pdf"
   },
-  {
-    "id": "electrical-unit-1-doc-20250213-wa0000-1",
-    "title": "Electrical Unit 1 — DOC-20250213-WA0000 (Copy 1)",
-    "slug": "electrical-unit-1-doc-20250213-wa0000-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "electrical",
-    "category": "notes",
-    "path": "/resources/year1/sem2/electrical/unit1/Copy of DOC-20250213-WA0000. (1).pdf"
-  },
-  {
-    "id": "electrical-unit-1-gateway",
-    "title": "Electrical Unit 1 — Gateway",
-    "slug": "electrical-unit-1-gateway",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "electrical",
-    "category": "notes",
-    "path": "/resources/year1/sem2/electrical/unit1/U1_Gateway.pdf"
-  },
-  {
-    "id": "electrical-unit-1-sir-notes",
-    "title": "Electrical Unit 1 — Sir Notes",
-    "slug": "electrical-unit-1-sir-notes",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "electrical",
-    "category": "notes",
-    "path": "/resources/year1/sem2/electrical/unit1/Unit 1 Sir-Notes.pdf"
-  },
-  {
-    "id": "electrical-unit-1-notes",
-    "title": "Electrical Unit 1 — Notes",
-    "slug": "electrical-unit-1-notes",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "electrical",
-    "category": "notes",
-    "path": "/resources/year1/sem2/electrical/unit1/Unit-1 Electrical.pdf"
-  },
-  {
-    "id": "electrical-unit-1-important-questions-1",
-    "title": "Electrical Unit 1 — Important Questions (1)",
-    "slug": "electrical-unit-1-important-questions-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "electrical",
-    "category": "notes",
-    "path": "/resources/year1/sem2/electrical/unit1/ch 1 important question (1).pdf"
-  },
-  {
+   {
     "id": "ds-unit-1",
     "title": "Data Structures Unit 1 — Arrays & Linked Lists",
     "slug": "ds-unit-1",
