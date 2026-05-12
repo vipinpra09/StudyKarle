@@ -1,39 +1,6 @@
 
 
 const RESOURCES_DATA = [
-  {
-    "id": "math-unit-1",
-    "title": "Mathematics Unit 1 — Calculus Notes",
-    "slug": "math-unit-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-1",
-    "subject": "mathematics-1",
-    "category": "notes",
-    "path": "/resources/year1/sem1/mathematics-1/unit1-calculus-notes.pdf"
-  },
-  {
-    "id": "physics-unit-1",
-    "title": "Engineering Physics Unit 1 Notes",
-    "slug": "physics-unit-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-1",
-    "subject": "engineering-physics",
-    "category": "notes",
-    "path": "/resources/year1/sem1/engineering-physics/physics-unit1-notes.pdf"
-  },
-  {
-    "id": "chemistry-pyq-2023",
-    "title": "Engineering Chemistry PYQ 2023",
-    "slug": "chemistry-pyq-2023",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-1",
-    "subject": "engineering-chemistry",
-    "category": "pyq",
-    "path": "/resources/year1/sem1/engineering-chemistry/chemistry-pyq-2023.pdf"
-  },
  {
   "id": "chem-lab",
   "title": "Chem Lab",
@@ -45,39 +12,6 @@ const RESOURCES_DATA = [
   "category": "notes",
   "path": "/resources/year1/sem1/engineering-chemistry/Chem_Lab.pdf"
  },
-  {
-    "id": "bme-assignment-1",
-    "title": "Basic Mechanical Engineering Assignment 1",
-    "slug": "bme-assignment-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-1",
-    "subject": "basic-mechanical-engineering",
-    "category": "assignment",
-    "path": "/resources/year1/sem1/basic-mechanical-engineering/bme-assignment-1.pdf"
-  },
-  {
-    "id": "math2-unit-1",
-    "title": "Mathematics 2 Unit 1 — Differential Equations",
-    "slug": "math2-unit-1",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "mathematics-2",
-    "category": "notes",
-    "path": "/resources/year1/sem2/mathematics-2/math2-unit1-notes.pdf"
-  },
-  {
-    "id": "bee-unit-2",
-    "title": "Basic Electrical Engineering Unit 2",
-    "slug": "bee-unit-2",
-    "type": "pdf",
-    "year": "year-1",
-    "semester": "sem-2",
-    "subject": "basic-electrical-engineering",
-    "category": "notes",
-    "path": "/resources/year1/sem2/basic-electrical-engineering/bee-unit2-notes.pdf"
-  },
   {
     "id": "ds-unit-1",
     "title": "Data Structures Unit 1 — Arrays & Linked Lists",
