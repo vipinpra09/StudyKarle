@@ -241,17 +241,19 @@ async function sendOTPEmail(name, email, otpCode) {
     console.warn('EmailJS not available — OTP cannot be emailed.');
     return false;
   }
-  try {
-    await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-      user_name:  name,
-      user_email: email,
-      otp_code:   otpCode,   // ← your EmailJS template must use {{otp_code}}
+  return emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+    user_name:  name,
+    user_email: email,
+    otp_code:   otpCode,   // ← your EmailJS template must use {{otp_code}}
+  })
+    .then((response) => {
+      console.log('EmailJS SUCCESS', response.status, response.text);
+      return true;
+    })
+    .catch((err) => {
+      console.error('EmailJS FAILED:', err);
+      return false;
     });
-    return true;
-  } catch (err) {
-    console.warn('EmailJS send failed:', err);
-    return false;
-  }
 }
 
 /* ----------------------------------------------------------
@@ -462,6 +464,10 @@ async function handleOTPVerification(e) {
   // ── Guard: empty OTP input ────────────────────────────────
   if (!enteredOTP) {
     toast('OTP verification required before signup can complete.', '⚠️');
+    return;
+  }
+  if (!/^\d{6}$/.test(enteredOTP)) {
+    toast('OTP must be exactly 6 digits.', '⚠️');
     return;
   }
 
@@ -807,6 +813,12 @@ function setupStaticEventHandlers() {
    ROUTER / PAGES
    ============================================================ */
 
+function updateBottomNav(pageName) {
+  document.querySelectorAll('.bnav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === pageName);
+  });
+}
+
 function render404Page() {
   const page = document.getElementById('page-404');
   if (!page) return;
@@ -831,11 +843,6 @@ function navigate(page, opts = {}) {
   // update state
   const prev = State.currentPage;
   State.currentPage = page;
-
-  // Update bottom nav
-  $$('.bnav-item').forEach(item => {
-    item.classList.toggle('active', item.dataset.page === page);
-  });
 
   // render page
   switch (page) {
@@ -880,6 +887,7 @@ function navigate(page, opts = {}) {
     window.history.pushState({ page, opts }, '', url);
   } catch(_) {}
 
+  updateBottomNav(page);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -895,14 +903,23 @@ function buildURL(page, opts = {}) {
   }
 }
 
-// Back navigation
-window.addEventListener('popstate', (e) => {
-  if (e.state) {
-    navigate(e.state.page, e.state.opts || {});
-  } else {
-    navigate('home');
-  }
-});
+let _routerListenersBound = false;
+function setupRouterListeners() {
+  if (_routerListenersBound) return;
+  _routerListenersBound = true;
+
+  window.addEventListener('popstate', (e) => {
+    if (e.state) {
+      navigate(e.state.page, e.state.opts || {});
+    } else {
+      routeFromCurrentURL();
+    }
+  });
+
+  window.addEventListener('hashchange', () => {
+    routeFromCurrentURL();
+  });
+}
 
 /* ============================================================
    SEARCH ENGINE
@@ -1498,24 +1515,7 @@ function handleShare(slug, title) {
    INIT
    ============================================================ */
 
-function init() {
-  applyTheme(State.theme);
-  setupHeaderSearch();
-  initEmailJS();
-  setupStaticEventHandlers();
-  updateAuthUI();
-  setupAuthForms();
-
-  if (document.body.classList.contains('auth-body')) {
-    if (getLoggedInUser()) {
-      redirectToPostLogin();
-    }
-    return;
-  }
-
-  if (redirectIfLoggedOut()) return;
-
-  // Parse current URL for deep linking
+function routeFromCurrentURL() {
   const path = location.pathname;
   const parts = path.split('/').filter(Boolean);
 
@@ -1540,6 +1540,31 @@ function init() {
     navigate(resourcesByYear(parts[0]).length > 0 ? 'year' : '404', { year: parts[0], sem: 'sem-1' });
   } else {
     navigate('404');
+  }
+}
+
+function init() {
+  applyTheme(State.theme);
+  initEmailJS();
+  setupStaticEventHandlers();
+  if (document.getElementById('auth-user-menu')) {
+    updateAuthUI();
+  }
+  setupAuthForms();
+
+  if (document.body.classList.contains('auth-body')) {
+    if (getLoggedInUser()) {
+      redirectToPostLogin();
+    }
+    return;
+  }
+
+  if (redirectIfLoggedOut()) return;
+
+  if (document.getElementById('main')) {
+    setupHeaderSearch();
+    setupRouterListeners();
+    routeFromCurrentURL();
   }
 }
 

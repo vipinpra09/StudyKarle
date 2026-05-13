@@ -25,13 +25,14 @@ Built by [Nitish Kumar](https://www.instagram.com/realnitishkumarr/)
 
 ```
 studykarle/
-├── index.html              # Main entry point
+├── index.html              # Main SPA entry point
+├── login.html              # Auth page (signup + login + OTP)
 ├── vercel.json             # Vercel SPA routing config
 ├── src/
-│   ├── data.js             # Resource data used by the app
-│   ├── script.js           # App logic (router, renderer, search)
+│   ├── data.js             # Resource data (RESOURCES_DATA array)
+│   ├── script.js           # App logic: router, renderer, search, auth, OTP, EmailJS
 │   └── styles.css          # Design system & component styles
-└── resources/               # Where you upload PDFs and images
+└── resources/              # PDF and image uploads by subject folder
     ├── year1/
     │   ├── sem1/
     │   │   ├── basic-mechanical-engineering/

@@ -1,13 +1,11 @@
 # macOS
 .DS_Store
-.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 
 # Windows
 Thumbs.db
-ehthumbs.db
 Desktop.ini
 
 # Editors
@@ -24,7 +22,3 @@ npm-debug.log*
 .env
 .env.local
 .env.*.local
-
-# Build output (if added later)
-dist/
-build/
