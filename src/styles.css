@@ -1417,8 +1417,17 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
 .btn-link:disabled { color: var(--text-muted); cursor: not-allowed; }
 
 /* Danger link (for Cancel button) */
-.btn-link.danger { color: #DC2626; }
-.btn-link.danger:hover { opacity: 0.75; }
+.btn-link.danger {
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+.btn-link.danger:hover {
+  color: #dc2626;
+}
 
 /* Smooth slide-in animation when OTP step appears */
 #signup-step-2 {
