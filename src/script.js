@@ -69,6 +69,679 @@ function toast(msg, icon = '✓') {
 }
 
 /* ============================================================
+   AUTH / SESSION
+   ============================================================ */
+
+// ── Storage keys ──────────────────────────────────────────────
+const AUTH_STORAGE_KEY = 'users';       // Array of registered users
+const LOGGED_IN_KEY    = 'loggedInUser'; // Currently logged-in user object
+const REDIRECT_KEY     = 'postLoginRedirect'; // Where to send user after login
+
+// ── EmailJS credentials ───────────────────────────────────────
+// SERVICE_ID and TEMPLATE_ID must match your EmailJS dashboard.
+// The OTP template must include a variable called {{otp_code}}.
+const SERVICE_ID  = 'service_jz2ub13';
+const TEMPLATE_ID = 'template_zplb77e'; // Should output: "Your OTP is {{otp_code}}"
+const PUBLIC_KEY  = 'uXIo2Ei6s0b5ceKAa';
+
+// ── OTP settings ──────────────────────────────────────────────
+const OTP_TTL_MS    = 5 * 60 * 1000; // OTP valid for 5 minutes
+const OTP_LENGTH    = 6;             // 6-digit numeric OTP
+const OTP_SESSION_KEY = 'sk_pending_otp'; // sessionStorage key for pending OTP data
+
+// ── Internal OTP countdown handle ────────────────────────────
+let _otpCountdownInterval = null;
+
+/* ----------------------------------------------------------
+   USER STORAGE HELPERS
+   ---------------------------------------------------------- */
+
+/**
+ * Returns the array of all registered users from localStorage.
+ * Users are stored as: { name, email, password (SHA-256 hash) }
+ */
+function getStoredUsers() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.warn('Failed to parse stored users', err);
+    return [];
+  }
+}
+
+/**
+ * Saves the updated users array back to localStorage.
+ * Call this ONLY after OTP is verified — never before.
+ */
+function saveStoredUsers(users) {
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(users));
+}
+
+/* ----------------------------------------------------------
+   SESSION HELPERS
+   ---------------------------------------------------------- */
+
+/** Gets the currently logged-in user object, or null if logged out. */
+function getLoggedInUser() {
+  try {
+    const raw = localStorage.getItem(LOGGED_IN_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    console.warn('Failed to parse logged in user', err);
+    return null;
+  }
+}
+
+/** Saves the logged-in user to localStorage (only safe fields: name + email). */
+function setLoggedInUser(user) {
+  localStorage.setItem(LOGGED_IN_KEY, JSON.stringify(user));
+}
+
+/** Removes the logged-in user from localStorage (used on logout). */
+function clearLoggedInUser() {
+  localStorage.removeItem(LOGGED_IN_KEY);
+}
+
+/* ----------------------------------------------------------
+   VALIDATION HELPERS
+   ---------------------------------------------------------- */
+
+/** Returns first 1–2 uppercase initials from a name string. */
+function getUserInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.slice(0, 2).map(p => p[0]).join('');
+  return initials ? initials.toUpperCase() : 'SK';
+}
+
+/** Basic email format check. */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/**
+ * Password strength check.
+ * Rule: at least 8 characters.
+ * Extend this function to add uppercase/digit/symbol rules as needed.
+ */
+function isStrongPassword(password) {
+  return password.length >= 8;
+}
+
+/**
+ * Timing-safe string comparison to prevent timing attacks.
+ * Returns true only if both strings are identical, character by character.
+ */
+function timingSafeEqual(a = '', b = '') {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+/**
+ * Hashes a password with SHA-256, salted with the user's email.
+ * Salt = email ensures two users with the same password get different hashes.
+ * IMPORTANT: Passwords are NEVER stored or compared in plain text.
+ * @param {string} password - The raw password entered by the user
+ * @param {string} salt     - The user's email address (used as salt)
+ * @returns {Promise<string>} Hex-encoded SHA-256 hash
+ */
+async function hashPassword(password, salt = '') {
+  const payload = salt ? `${salt}:${password}` : password;
+  const data = new TextEncoder().encode(payload);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(hashBuffer)]
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/* ----------------------------------------------------------
+   OTP GENERATION & EMAILJS
+   ---------------------------------------------------------- */
+
+/**
+ * Generates a random numeric OTP of OTP_LENGTH digits.
+ * Uses crypto.getRandomValues for cryptographic randomness.
+ * @returns {string} e.g. "482931"
+ */
+function generateOTP() {
+  const digits = new Uint32Array(1);
+  // Generate a random number, then take the last OTP_LENGTH digits
+  crypto.getRandomValues(digits);
+  const raw = digits[0].toString().padStart(10, '0');
+  return raw.slice(-OTP_LENGTH);
+}
+
+/** Initializes EmailJS with the public key. Called once on page load. */
+function initEmailJS() {
+  if (!window.emailjs || typeof emailjs.init !== 'function') return;
+  try {
+    emailjs.init(PUBLIC_KEY);
+  } catch (err) {
+    console.warn('EmailJS init failed', err);
+  }
+}
+
+/**
+ * Sends the OTP to the user's email via EmailJS.
+ * The EmailJS template must include {{otp_code}}, {{user_name}}, {{user_email}}.
+ *
+ * @param {string} name     - User's display name
+ * @param {string} email    - Destination email address
+ * @param {string} otpCode  - The 6-digit OTP to include in the email
+ * @returns {Promise<boolean>} true if sent, false if EmailJS failed
+ */
+async function sendOTPEmail(name, email, otpCode) {
+  if (!window.emailjs || typeof emailjs.send !== 'function') {
+    console.warn('EmailJS not available — OTP cannot be emailed.');
+    return false;
+  }
+  try {
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+      user_name:  name,
+      user_email: email,
+      otp_code:   otpCode,   // ← your EmailJS template must use {{otp_code}}
+    });
+    return true;
+  } catch (err) {
+    console.warn('EmailJS send failed:', err);
+    return false;
+  }
+}
+
+/* ----------------------------------------------------------
+   OTP PENDING STATE  (stored in sessionStorage, not localStorage)
+   sessionStorage is cleared automatically when the tab/browser closes,
+   so stale OTPs don't linger. Plain text OTP is only kept temporarily
+   in session memory — it is NOT saved to localStorage with the user.
+   ---------------------------------------------------------- */
+
+/**
+ * Saves the pending OTP data to sessionStorage.
+ * @param {{ name, email, hashedPassword, otpCode, expiresAt }} data
+ */
+function savePendingOTP(data) {
+  sessionStorage.setItem(OTP_SESSION_KEY, JSON.stringify(data));
+}
+
+/** Returns the pending OTP data object, or null. */
+function getPendingOTP() {
+  try {
+    const raw = sessionStorage.getItem(OTP_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Clears the pending OTP from sessionStorage. */
+function clearPendingOTP() {
+  sessionStorage.removeItem(OTP_SESSION_KEY);
+}
+
+/* ----------------------------------------------------------
+   OTP COUNTDOWN TIMER
+   ---------------------------------------------------------- */
+
+/**
+ * Starts a visible countdown timer in the OTP step UI.
+ * Updates every second and adds an "urgent" class when < 60 s remain.
+ * Stops when time runs out and shows an expired message.
+ * @param {number} expiresAt - Timestamp (ms) when the OTP expires
+ */
+function startOTPCountdown(expiresAt) {
+  // Clear any previous interval
+  if (_otpCountdownInterval) clearInterval(_otpCountdownInterval);
+
+  const countdownEl = document.getElementById('otp-countdown');
+  const timerEl     = document.getElementById('otp-timer');
+  const resendBtn   = document.getElementById('resend-otp-btn');
+
+  function tick() {
+    const remaining = expiresAt - Date.now();
+
+    if (remaining <= 0) {
+      // OTP has expired
+      clearInterval(_otpCountdownInterval);
+      clearPendingOTP();
+      if (countdownEl) countdownEl.textContent = '0:00';
+      if (timerEl)     timerEl.classList.add('urgent');
+      if (resendBtn)   resendBtn.disabled = false; // allow resend
+      toast('OTP expired. Please request a new one.', '⏰');
+      return;
+    }
+
+    const totalSec = Math.ceil(remaining / 1000);
+    const mins     = Math.floor(totalSec / 60);
+    const secs     = totalSec % 60;
+    if (countdownEl) countdownEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+    // Turn red when under 60 seconds
+    if (timerEl) timerEl.classList.toggle('urgent', remaining < 60_000);
+  }
+
+  tick(); // run immediately, then every second
+  _otpCountdownInterval = setInterval(tick, 1000);
+}
+
+/** Stops the OTP countdown (called on cancel / success). */
+function stopOTPCountdown() {
+  if (_otpCountdownInterval) {
+    clearInterval(_otpCountdownInterval);
+    _otpCountdownInterval = null;
+  }
+}
+
+/* ----------------------------------------------------------
+   SIGNUP FLOW — Step 1: Validate & Send OTP
+   ---------------------------------------------------------- */
+
+/**
+ * Handles the signup form submission (Step 1).
+ * Validates input, generates OTP, sends it via EmailJS,
+ * and transitions the UI to the OTP verification step.
+ * The account is NOT created yet — only after OTP is verified.
+ */
+async function handleSignupStep1(e) {
+  e.preventDefault();
+
+  const name     = (document.getElementById('signup-name')?.value     || '').trim();
+  const email    = (document.getElementById('signup-email')?.value    || '').trim().toLowerCase();
+  const password = (document.getElementById('signup-password')?.value || '').trim();
+
+  // ── Validation ───────────────────────────────────────────
+  if (!name || !email || !password) {
+    toast('Please fill in all signup fields.', '⚠️');
+    return;
+  }
+  if (!isValidEmail(email)) {
+    toast('Please enter a valid email address.', '⚠️');
+    return;
+  }
+  if (!isStrongPassword(password)) {
+    toast('Password must be at least 8 characters long.', '⚠️');
+    return;
+  }
+
+  // ── Check for duplicate email ─────────────────────────────
+  const users = getStoredUsers();
+  if (users.some(u => u.email === email)) {
+    toast('This email is already registered. Please log in.', '⚠️');
+    return;
+  }
+
+  // ── Hash password now (never store plain text) ────────────
+  const hashedPassword = await hashPassword(password, email);
+
+  // ── Generate and send OTP ─────────────────────────────────
+  const otpCode   = generateOTP();
+  const expiresAt = Date.now() + OTP_TTL_MS;
+
+  // Disable the send button while we email the OTP
+  const sendBtn = document.getElementById('send-otp-btn');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Sending OTP…'; }
+
+  const sent = await sendOTPEmail(name, email, otpCode);
+
+  if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send OTP to Email'; }
+
+  if (!sent) {
+    toast('Could not send OTP. Check your email and try again.', '❌');
+    return;
+  }
+
+  // ── Save pending OTP to sessionStorage (NOT localStorage) ─
+  // Account is NOT written to localStorage yet.
+  savePendingOTP({ name, email, hashedPassword, otpCode, expiresAt });
+
+  // ── Switch UI to OTP step ─────────────────────────────────
+  const step1 = document.getElementById('signup-step-1');
+  const step2 = document.getElementById('signup-step-2');
+  const emailLabel = document.getElementById('otp-target-email');
+
+  if (step1) step1.hidden = true;
+  if (step2) step2.hidden = false;
+  if (emailLabel) emailLabel.textContent = email;
+  document.getElementById('otp-input')?.focus();
+
+  startOTPCountdown(expiresAt);
+  toast('OTP sent successfully! Check your inbox.', '📧');
+}
+
+/* ----------------------------------------------------------
+   SIGNUP FLOW — Step 2: Verify OTP & Create Account
+   ---------------------------------------------------------- */
+
+/**
+ * Handles OTP form submission (Step 2).
+ * Verifies OTP against the pending session data.
+ * Only if correct and not expired: saves the user to localStorage.
+ */
+async function handleOTPVerification(e) {
+  e.preventDefault();
+
+  const enteredOTP = (document.getElementById('otp-input')?.value || '').trim();
+  const pending    = getPendingOTP();
+
+  // ── Guard: no pending OTP session ────────────────────────
+  if (!pending) {
+    toast('OTP session not found. Please start signup again.', '⚠️');
+    resetSignupToStep1();
+    return;
+  }
+
+  // ── Guard: OTP expired ────────────────────────────────────
+  if (Date.now() > pending.expiresAt) {
+    toast('OTP expired. Please request a new one.', '⏰');
+    clearPendingOTP();
+    stopOTPCountdown();
+    // Enable resend button
+    const resendBtn = document.getElementById('resend-otp-btn');
+    if (resendBtn) resendBtn.disabled = false;
+    return;
+  }
+
+  // ── Guard: empty OTP input ────────────────────────────────
+  if (!enteredOTP) {
+    toast('OTP verification required before signup can complete.', '⚠️');
+    return;
+  }
+
+  // ── Compare OTP (timing-safe to prevent brute-force guessing) ─
+  if (!timingSafeEqual(enteredOTP, pending.otpCode)) {
+    toast('Incorrect OTP. Please check your email and try again.', '❌');
+    // Clear the input so the user re-types
+    const otpInput = document.getElementById('otp-input');
+    if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+    return;
+  }
+
+  // ── OTP is correct — now save the account ────────────────
+  // This is the ONLY place where a user is written to localStorage.
+  const users = getStoredUsers();
+
+  // Double-check for race condition (same email registered in another tab)
+  if (users.some(u => u.email === pending.email)) {
+    toast('This email was already registered. Please log in.', '⚠️');
+    clearPendingOTP();
+    stopOTPCountdown();
+    resetSignupToStep1();
+    return;
+  }
+
+  // Push new verified user — password is already hashed
+  users.push({
+    name:     pending.name,
+    email:    pending.email,
+    password: pending.hashedPassword, // SHA-256 hash, never plain text
+  });
+  saveStoredUsers(users);
+
+  // Clean up OTP session and timer
+  clearPendingOTP();
+  stopOTPCountdown();
+
+  toast('Account created successfully! Please log in.', '✅');
+  resetSignupToStep1();
+  // Auto-focus the login email field to guide the user
+  document.getElementById('login-email')?.focus();
+}
+
+/**
+ * Resets the signup card back to Step 1 (form visible, OTP step hidden).
+ * Called after successful signup, cancel, or error recovery.
+ */
+function resetSignupToStep1() {
+  const step1 = document.getElementById('signup-step-1');
+  const step2 = document.getElementById('signup-step-2');
+  if (step1) step1.hidden = false;
+  if (step2) step2.hidden = true;
+
+  // Clear all signup inputs
+  const signupForm = document.getElementById('signup-form');
+  if (signupForm) signupForm.reset();
+
+  // Clear OTP input
+  const otpInput = document.getElementById('otp-input');
+  if (otpInput) otpInput.value = '';
+
+  stopOTPCountdown();
+}
+
+/**
+ * Handles the "Resend OTP" button.
+ * Re-generates the OTP and re-sends it to the same email.
+ */
+async function handleResendOTP() {
+  const pending = getPendingOTP();
+  if (!pending) {
+    toast('Session expired. Please fill the signup form again.', '⚠️');
+    resetSignupToStep1();
+    return;
+  }
+
+  const resendBtn = document.getElementById('resend-otp-btn');
+  if (resendBtn) { resendBtn.disabled = true; }
+
+  const newOTP       = generateOTP();
+  const newExpiresAt = Date.now() + OTP_TTL_MS;
+
+  const sent = await sendOTPEmail(pending.name, pending.email, newOTP);
+
+  if (!sent) {
+    toast('Could not resend OTP. Check your connection.', '❌');
+    if (resendBtn) resendBtn.disabled = false;
+    return;
+  }
+
+  // Update pending OTP with new code and expiry
+  savePendingOTP({ ...pending, otpCode: newOTP, expiresAt: newExpiresAt });
+
+  // Clear the OTP input field
+  const otpInput = document.getElementById('otp-input');
+  if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+
+  startOTPCountdown(newExpiresAt);
+  toast('New OTP sent! Check your inbox.', '📧');
+}
+
+/* ----------------------------------------------------------
+   LOGIN FLOW
+   ---------------------------------------------------------- */
+
+/**
+ * Handles login form submission.
+ * Checks: email exists → password hash matches → log in.
+ * Fails with a generic "invalid credentials" message (no hints
+ * about whether it's the email or password that's wrong).
+ */
+async function handleLogin(e) {
+  e.preventDefault();
+
+  const email    = (document.getElementById('login-email')?.value    || '').trim().toLowerCase();
+  const password = (document.getElementById('login-password')?.value || '').trim();
+
+  if (!email || !password) {
+    toast('Please enter your email and password.', '⚠️');
+    return;
+  }
+
+  // Hash the entered password the same way it was hashed on signup
+  const hashedPassword = await hashPassword(password, email);
+
+  // Look up user by email in localStorage["users"]
+  const users = getStoredUsers();
+  const user  = users.find(u => u.email === email);
+
+  // Timing-safe comparison:
+  // If user not found, compare with the hash itself (always false)
+  // so timing is consistent (prevents email enumeration via timing)
+  const storedHash = user ? user.password : hashedPassword;
+  const match      = timingSafeEqual(hashedPassword, storedHash);
+
+  if (!user || !match) {
+    // Generic message — do NOT say "email not found" or "wrong password"
+    toast('Invalid credentials. Please check your email and password.', '⚠️');
+    return;
+  }
+
+  // Only name and email are stored in session — never the password hash
+  setLoggedInUser({ name: user.name, email: user.email });
+  toast('Login successful! Welcome back.', '✅');
+  redirectToPostLogin();
+}
+
+/* ----------------------------------------------------------
+   AUTH UI  (header: Login button vs. user menu)
+   ---------------------------------------------------------- */
+
+/**
+ * Updates the top-right header based on login state.
+ *
+ * Logged OUT → shows "Login / Signup" button
+ * Logged IN  → shows avatar + name + Logout button
+ *
+ * No duplicate links, no confusing extra options.
+ */
+function updateAuthUI() {
+  const loginBtn  = document.getElementById('auth-login-btn');
+  const userMenu  = document.getElementById('auth-user-menu');
+  const nameEl    = document.getElementById('auth-user-name');
+  const avatarEl  = document.getElementById('auth-user-avatar');
+  const user      = getLoggedInUser();
+
+  if (user) {
+    // User is logged in — show their name/avatar and logout button
+    if (loginBtn)  loginBtn.hidden  = true;
+    if (userMenu)  userMenu.hidden  = false;
+    if (nameEl)    nameEl.textContent   = user.name  || 'Student';
+    if (avatarEl)  avatarEl.textContent = getUserInitials(user.name || 'Student');
+  } else {
+    // User is logged out — show the login/signup button
+    if (loginBtn)  loginBtn.hidden  = false;
+    if (userMenu)  userMenu.hidden  = true;
+  }
+}
+
+/* ----------------------------------------------------------
+   REDIRECT HELPERS
+   ---------------------------------------------------------- */
+
+/** Builds a safe path from the current URL (used before redirecting to login). */
+function buildSafeRedirectPath() {
+  const path   = location.pathname;
+  const params = new URLSearchParams(location.search);
+  const query  = params.get('q');
+  return query ? `${path}?q=${encodeURIComponent(query)}` : path;
+}
+
+/**
+ * Validates a redirect path — prevents open redirect attacks.
+ * Only allows relative paths that start with "/" and don't contain
+ * "://" (external URLs) or "login.html" (redirect loops).
+ */
+function sanitizeRedirectPath(path) {
+  if (!path || typeof path !== 'string') return '';
+  if (!path.startsWith('/'))    return '';
+  if (path.startsWith('//'))    return '';
+  if (path.includes('://'))     return '';
+  if (path.includes('login.html')) return '';
+  return path;
+}
+
+/** Redirects to index.html (or the saved pre-login URL) after successful login. */
+function redirectToPostLogin() {
+  const redirectTo = sanitizeRedirectPath(localStorage.getItem(REDIRECT_KEY));
+  if (redirectTo) localStorage.removeItem(REDIRECT_KEY);
+  window.location.href = redirectTo || 'index.html';
+}
+
+/**
+ * If the user is not logged in, saves the current URL and redirects to login.html.
+ * Called on every page load of index.html.
+ * Returns true if redirect happened (caller should stop rendering).
+ */
+function redirectIfLoggedOut() {
+  if (document.body.classList.contains('auth-body')) return false;
+  if (getLoggedInUser()) return false;
+
+  const currentPath = buildSafeRedirectPath();
+  localStorage.setItem(REDIRECT_KEY, currentPath);
+  window.location.href = 'login.html';
+  return true;
+}
+
+/** Logs the user out, clears their session, and returns to login.html. */
+function logout() {
+  clearLoggedInUser();
+  updateAuthUI();
+  toast('Logged out successfully.', '👋');
+  if (!document.body.classList.contains('auth-body')) {
+    localStorage.setItem(REDIRECT_KEY, buildSafeRedirectPath());
+    window.location.href = 'login.html';
+  }
+}
+
+/* ----------------------------------------------------------
+   SETUP FUNCTIONS  (called from init())
+   ---------------------------------------------------------- */
+
+/** Wires up the Logout button and refreshes the header auth UI. */
+function setupAuthUI() {
+  const logoutBtn = document.getElementById('auth-logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+  updateAuthUI();
+}
+
+/**
+ * Wires up all auth form event listeners:
+ *  - Signup Step 1 form   → handleSignupStep1
+ *  - OTP verification form → handleOTPVerification
+ *  - Resend OTP button    → handleResendOTP
+ *  - Cancel OTP button    → resetSignupToStep1 + clearPendingOTP
+ *  - Login form           → handleLogin
+ */
+function setupAuthForms() {
+  // ── Signup Step 1 ──────────────────────────────────────────
+  const signupForm = document.getElementById('signup-form');
+  if (signupForm) {
+    signupForm.addEventListener('submit', handleSignupStep1);
+  }
+
+  // ── OTP Step 2 ─────────────────────────────────────────────
+  const otpForm = document.getElementById('otp-form');
+  if (otpForm) {
+    otpForm.addEventListener('submit', handleOTPVerification);
+  }
+
+  // ── Resend OTP ─────────────────────────────────────────────
+  const resendBtn = document.getElementById('resend-otp-btn');
+  if (resendBtn) {
+    resendBtn.addEventListener('click', handleResendOTP);
+  }
+
+  // ── Cancel OTP (go back to Step 1) ─────────────────────────
+  const cancelBtn = document.getElementById('cancel-otp-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      clearPendingOTP();
+      stopOTPCountdown();
+      resetSignupToStep1();
+      toast('Signup cancelled. Fill the form again to retry.', 'ℹ️');
+    });
+  }
+
+  // ── Login form ─────────────────────────────────────────────
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+  }
+}
+
+/* ============================================================
    THEME
    ============================================================ */
 
@@ -760,6 +1433,18 @@ function handleShare(slug, title) {
 function init() {
   applyTheme(State.theme);
   setupHeaderSearch();
+  initEmailJS();
+  setupAuthUI();
+  setupAuthForms();
+
+  if (document.body.classList.contains('auth-body')) {
+    if (getLoggedInUser()) {
+      redirectToPostLogin();
+    }
+    return;
+  }
+
+  if (redirectIfLoggedOut()) return;
 
   // Parse current URL for deep linking
   const path = location.pathname;
