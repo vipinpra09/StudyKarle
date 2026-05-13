@@ -88,6 +88,8 @@ const PUBLIC_KEY  = 'uXIo2Ei6s0b5ceKAa';
 const OTP_TTL_MS    = 5 * 60 * 1000; // OTP valid for 5 minutes
 const OTP_LENGTH    = 6;             // 6-digit numeric OTP
 const OTP_SESSION_KEY = 'sk_pending_otp'; // sessionStorage key for pending OTP data
+const OTP_RATE_LIMIT_MS = 60 * 1000; // minimum delay between OTP sends
+const OTP_RATE_LIMIT_KEY = 'lastOtpTime';
 
 // ── Internal OTP countdown handle ────────────────────────────
 let _otpCountdownInterval = null;
@@ -362,7 +364,7 @@ async function handleSignupStep1(e) {
     return;
   }
   if (!isStrongPassword(password)) {
-    toast('Password must be at least 8 characters long.', '⚠️');
+    toast('Password must be at least 8 characters.', '⚠️');
     return;
   }
 
@@ -377,6 +379,16 @@ async function handleSignupStep1(e) {
   const hashedPassword = await hashPassword(password, email);
 
   // ── Generate and send OTP ─────────────────────────────────
+  // Rate-limit: prevent sending more than 1 OTP per 60 seconds
+  const lastOtpTime = parseInt(sessionStorage.getItem(OTP_RATE_LIMIT_KEY) || '0', 10);
+  const now = Date.now();
+  if (now - lastOtpTime < OTP_RATE_LIMIT_MS) {
+    const remaining = Math.ceil((OTP_RATE_LIMIT_MS - (now - lastOtpTime)) / 1000);
+    toast(`Please wait ${remaining}s before requesting another OTP.`, '⚠️');
+    return;
+  }
+  sessionStorage.setItem(OTP_RATE_LIMIT_KEY, now.toString());
+
   const otpCode   = generateOTP();
   const expiresAt = Date.now() + OTP_TTL_MS;
 
@@ -420,6 +432,9 @@ async function handleSignupStep1(e) {
  * Verifies OTP against the pending session data.
  * Only if correct and not expired: saves the user to localStorage.
  */
+// NOTE: This OTP verification is client-side only and is NOT cryptographically secure.
+// A determined user could bypass it via DevTools. For production security,
+// move OTP generation and verification to a server (Firebase Functions, Supabase, etc.)
 async function handleOTPVerification(e) {
   e.preventDefault();
 
@@ -689,13 +704,6 @@ function logout() {
    SETUP FUNCTIONS  (called from init())
    ---------------------------------------------------------- */
 
-/** Wires up the Logout button and refreshes the header auth UI. */
-function setupAuthUI() {
-  const logoutBtn = document.getElementById('auth-logout-btn');
-  if (logoutBtn) logoutBtn.addEventListener('click', logout);
-  updateAuthUI();
-}
-
 /**
  * Wires up all auth form event listeners:
  *  - Signup Step 1 form   → handleSignupStep1
@@ -761,9 +769,60 @@ function toggleTheme() {
   applyTheme(State.theme === 'dark' ? 'light' : 'dark');
 }
 
+function setupStaticEventHandlers() {
+  const logo = document.querySelector('.logo');
+  if (logo && !document.body.classList.contains('auth-body')) {
+    logo.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigate('home');
+    });
+  }
+
+  const mobileSearchBtn = document.getElementById('mobile-search-btn');
+  if (mobileSearchBtn) {
+    mobileSearchBtn.addEventListener('click', () => navigate('search', {}));
+  }
+
+  document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
+    btn.addEventListener('click', toggleTheme);
+  });
+
+  const settingsBtn = document.getElementById('settings-btn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => navigate('settings'));
+  }
+
+  document.querySelectorAll('.bnav-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      if (page) navigate(page, {});
+    });
+  });
+
+  const logoutBtn = document.getElementById('auth-logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+}
+
 /* ============================================================
    ROUTER / PAGES
    ============================================================ */
+
+function render404Page() {
+  const page = document.getElementById('page-404');
+  if (!page) return;
+
+  page.innerHTML = `
+    <div class="container">
+      <div style="text-align:center; padding:4rem 2rem;">
+        <h2>404 — Page Not Found</h2>
+        <p>The page you're looking for doesn't exist.</p>
+        <button class="btn btn-primary" id="go-home-from-404">Go Home</button>
+      </div>
+    </div>
+  `;
+  page.classList.add('active');
+  document.getElementById('go-home-from-404')?.addEventListener('click', () => navigate('home'));
+}
 
 function navigate(page, opts = {}) {
   // hide all pages
@@ -803,6 +862,15 @@ function navigate(page, opts = {}) {
       break;
     case 'settings':
       renderSettingsPage();
+      break;
+    case '404':
+      render404Page();
+      break;
+    default:
+      State.currentPage = '404';
+      render404Page();
+      page = '404';
+      opts = {};
       break;
   }
 
@@ -1434,7 +1502,8 @@ function init() {
   applyTheme(State.theme);
   setupHeaderSearch();
   initEmailJS();
-  setupAuthUI();
+  setupStaticEventHandlers();
+  updateAuthUI();
   setupAuthForms();
 
   if (document.body.classList.contains('auth-body')) {
@@ -1458,15 +1527,19 @@ function init() {
     const q = new URLSearchParams(location.search).get('q') || '';
     navigate('search', { query: q });
   } else if (parts[0] === 'resource' && parts[1]) {
-    navigate('resource', { slug: parts[1] });
+    const resource = getResourceBySlug(parts[1]);
+    navigate(resource ? 'resource' : '404', { slug: parts[1] });
   } else if (parts.length >= 3) {
-    navigate('subject', { year: parts[0], sem: parts[1], subject: parts[2] });
+    const subjectResources = resourcesBySubject(parts[0], parts[1], parts[2]);
+    navigate(subjectResources.length > 0 ? 'subject' : '404', { year: parts[0], sem: parts[1], subject: parts[2] });
   } else if (parts.length === 2) {
-    navigate('year', { year: parts[0], sem: parts[1] });
+    const validSem = parts[1] === 'sem-1' || parts[1] === 'sem-2';
+    const hasYearResources = resourcesByYear(parts[0]).length > 0;
+    navigate(validSem && hasYearResources ? 'year' : '404', { year: parts[0], sem: parts[1] });
   } else if (parts.length === 1) {
-    navigate('year', { year: parts[0], sem: 'sem-1' });
+    navigate(resourcesByYear(parts[0]).length > 0 ? 'year' : '404', { year: parts[0], sem: 'sem-1' });
   } else {
-    navigate('home');
+    navigate('404');
   }
 }
 

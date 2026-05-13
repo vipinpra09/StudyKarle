@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="StudyKarle — Login or signup to access your study resources." />
   <meta name="theme-color" content="#2563EB" />
+  <meta property="og:title" content="StudyKarle — Login">
+  <meta property="og:description" content="Login or signup to access your engineering study resources.">
+  <meta property="og:url" content="https://study-karle-mvp.vercel.app/login.html">
+  <meta name="twitter:card" content="summary">
   <title>StudyKarle — Login / Signup</title>
 
   <!-- Styles -->
@@ -29,7 +33,7 @@
 
       <!-- A clean theme toggle helps users stay comfortable while studying -->
       <div class="header-actions">
-        <button class="icon-btn theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <button class="icon-btn theme-toggle-btn" title="Toggle theme">🌙</button>
       </div>
     </div>
   </header>
@@ -64,15 +68,15 @@
 
               <label class="auth-label" for="signup-name">Full Name</label>
               <input class="auth-input" id="signup-name" type="text"
-                     placeholder="Your full name" autocomplete="name" />
+                     placeholder="Your full name" autocomplete="name" required="" />
 
               <label class="auth-label" for="signup-email">Email</label>
               <input class="auth-input" id="signup-email" type="email"
-                     placeholder="you@example.com" autocomplete="email" />
+                     placeholder="you@example.com" autocomplete="email" required="" />
 
               <label class="auth-label" for="signup-password">Password</label>
               <input class="auth-input" id="signup-password" type="password"
-                     placeholder="At least 8 characters" autocomplete="new-password" />
+                     placeholder="At least 8 characters" autocomplete="new-password" minlength="8" maxlength="128" required="" />
 
               <!-- This button starts the secure signup flow by sending the OTP -->
               <button class="btn btn-primary auth-submit" type="submit" id="send-otp-btn">
@@ -131,11 +135,11 @@
 
             <label class="auth-label" for="login-email">Email</label>
             <input class="auth-input" id="login-email" type="email"
-                   placeholder="you@example.com" autocomplete="email" />
+                   placeholder="you@example.com" autocomplete="email" required="" />
 
             <label class="auth-label" for="login-password">Password</label>
             <input class="auth-input" id="login-password" type="password"
-                   placeholder="Your password" autocomplete="current-password" />
+                   placeholder="Your password" autocomplete="current-password" required="" />
 
             <button class="btn btn-primary auth-submit" type="submit">Login</button>
 
@@ -159,8 +163,9 @@
   <!-- ===================== SCRIPTS ===================== -->
   <!-- EmailJS SDK — used to send the OTP email -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="src/data.js?v=1.0" defer=""></script>
   <!-- Main script — handles auth, OTP, and routing for a smooth experience -->
-  <script src="src/script.js"></script>
+  <script src="src/script.js" defer=""></script>
 
 </body>
 </html>

@@ -27,8 +27,6 @@ Built by [Nitish Kumar](https://www.instagram.com/realnitishkumarr/)
 studykarle/
 ├── index.html              # Main entry point
 ├── vercel.json             # Vercel SPA routing config
-├── data/
-│   └── resources.json      # Legacy snapshot (not used by app)
 ├── src/
 │   ├── data.js             # Resource data used by the app
 │   ├── script.js           # App logic (router, renderer, search)
@@ -180,10 +178,12 @@ The `vercel.json` handles SPA routing automatically.
 
 ## File Size Rules
 
-| Type | Recommended | Hard Limit |
-|------|-------------|------------|
-| PDF  | 25–30 MB    | 50 MB      |
-| JPG/JPEG | 5–10 MB | 25 MB     |
+| Type     | Recommended | Hard Limit |
+|----------|-------------|------------|
+| PDF      | 3–8 MB      | 15 MB      |
+| JPG/JPEG | 1–3 MB      | 5 MB       |
+
+> **Tip:** Use [Smallpdf](https://smallpdf.com/compress-pdf) or `ghostscript` to compress PDFs before uploading.
 
 ---
 

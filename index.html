@@ -7,6 +7,13 @@
   <meta name="theme-color" content="#2563EB" />
   <meta property="og:title" content="StudyKarle — Study Resources, Organized Properly." />
   <meta property="og:description" content="Access notes, PYQs, assignments, tutorials, and papers in one simple place." />
+  <meta property="og:url" content="https://study-karle-mvp.vercel.app/">
+  <meta property="og:image" content="https://study-karle-mvp.vercel.app/resources/og-preview.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="StudyKarle — Study Resources, Organized Properly.">
+  <meta name="twitter:description" content="Access notes, PYQs, assignments, tutorials, and papers in one simple place.">
+  <meta name="twitter:image" content="https://study-karle-mvp.vercel.app/resources/og-preview.png">
   <title>StudyKarle — Study Resources, Organized Properly.</title>
 
   <link rel="stylesheet" href="src/styles.css" />
@@ -14,11 +21,17 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
 </head>
 <body>
+<noscript>
+  <div style="text-align:center; padding:3rem; font-family:sans-serif;">
+    <h2>StudyKarle requires JavaScript</h2>
+    <p>Please enable JavaScript in your browser to use this app.</p>
+  </div>
+</noscript>
 
 <!-- ===================== HEADER ===================== -->
 <header class="site-header">
   <div class="container">
-    <a class="logo" href="/" onclick="navigate('home'); return false;">
+    <a class="logo" href="/">
       <div class="logo-mark">SK</div>
       <span class="logo-name">Study<span>Karle</span></span>
       <span class="logo-by">by Nitish Kumar</span>
@@ -41,15 +54,15 @@
     </div>
 
     <div class="header-actions">
-      <button class="icon-btn" title="Search" onclick="navigate('search', {})" style="display:none" id="mobile-search-btn">
+      <button class="icon-btn" title="Search" id="mobile-search-btn">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
         </svg>
       </button>
 
-      <button class="icon-btn theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <button class="icon-btn theme-toggle-btn" title="Toggle theme">🌙</button>
 
-      <button class="icon-btn" onclick="navigate('settings')" title="Settings">
+      <button class="icon-btn" id="settings-btn" title="Settings">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
         </svg>
@@ -74,6 +87,7 @@
   <div class="page" id="page-resource"></div>
   <div class="page" id="page-search"></div>
   <div class="page" id="page-settings"></div>
+  <div class="page" id="page-404"></div>
 </main>
 
 <!-- ===================== FOOTER ===================== -->
@@ -86,15 +100,15 @@
 <!-- ===================== BOTTOM NAV (Mobile) ===================== -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-item active" data-page="home" onclick="navigate('home')">
+    <button class="bnav-item active" data-page="home">
       <div class="bnav-icon">🏠</div>
       Home
     </button>
-    <button class="bnav-item" data-page="search" onclick="navigate('search', {})">
+    <button class="bnav-item" data-page="search">
       <div class="bnav-icon">🔍</div>
       Search
     </button>
-    <button class="bnav-item" data-page="settings" onclick="navigate('settings')">
+    <button class="bnav-item" data-page="settings">
       <div class="bnav-icon">⚙️</div>
       Settings
     </button>
@@ -105,19 +119,8 @@
 <div id="toast-container"></div>
 
 <!-- ===================== SCRIPTS ===================== -->
-<script src="src/data.js"></script>
-<script src="src/script.js"></script>
-
-<script>
-  (function() {
-    function checkMobile() {
-      const btn = document.getElementById('mobile-search-btn');
-      if (btn) btn.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-    }
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-  })();
-</script>
+<script src="src/data.js?v=1.0" defer=""></script>
+<script src="src/script.js" defer=""></script>
 
 </body>
 </html>
