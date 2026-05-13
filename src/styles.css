@@ -1286,6 +1286,11 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
   justify-content: center;
 }
 
+/* Hide mobile search btn on desktop, show on mobile */
+#mobile-search-btn {
+  display: none;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -1306,6 +1311,7 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
   .viewer-frame-wrap { border-radius: var(--r-lg); }
   .viewer-iframe { height: 65vh; }
   .header-search { display: none; }
+  #mobile-search-btn { display: flex; }
   #toast-container { bottom: 80px; right: 12px; left: 12px; }
   .toast { justify-content: center; }
   .auth-main { padding: 28px 0 56px; }
