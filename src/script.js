@@ -88,6 +88,7 @@ const PUBLIC_KEY  = 'uXIo2Ei6s0b5ceKAa';
 const OTP_TTL_MS    = 5 * 60 * 1000; // OTP valid for 5 minutes
 const OTP_LENGTH    = 6;             // 6-digit numeric OTP
 const OTP_SESSION_KEY = 'sk_pending_otp'; // sessionStorage key for pending OTP data
+const OTP_RATE_LIMIT_MS = 60 * 1000; // minimum delay between OTP sends
 const OTP_RATE_LIMIT_KEY = 'lastOtpTime';
 
 // ── Internal OTP countdown handle ────────────────────────────
@@ -381,8 +382,8 @@ async function handleSignupStep1(e) {
   // Rate-limit: prevent sending more than 1 OTP per 60 seconds
   const lastOtpTime = parseInt(sessionStorage.getItem(OTP_RATE_LIMIT_KEY) || '0', 10);
   const now = Date.now();
-  if (now - lastOtpTime < 60000) {
-    const remaining = Math.ceil((60000 - (now - lastOtpTime)) / 1000);
+  if (now - lastOtpTime < OTP_RATE_LIMIT_MS) {
+    const remaining = Math.ceil((OTP_RATE_LIMIT_MS - (now - lastOtpTime)) / 1000);
     toast(`Please wait ${remaining}s before requesting another OTP.`, '⚠️');
     return;
   }
