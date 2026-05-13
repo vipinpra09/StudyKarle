@@ -704,11 +704,6 @@ function logout() {
    SETUP FUNCTIONS  (called from init())
    ---------------------------------------------------------- */
 
-/** Wires up the Logout button and refreshes the header auth UI. */
-function setupAuthUI() {
-  updateAuthUI();
-}
-
 /**
  * Wires up all auth form event listeners:
  *  - Signup Step 1 form   → handleSignupStep1
@@ -1508,7 +1503,7 @@ function init() {
   setupHeaderSearch();
   initEmailJS();
   setupStaticEventHandlers();
-  setupAuthUI();
+  updateAuthUI();
   setupAuthForms();
 
   if (document.body.classList.contains('auth-body')) {
@@ -1532,7 +1527,8 @@ function init() {
     const q = new URLSearchParams(location.search).get('q') || '';
     navigate('search', { query: q });
   } else if (parts[0] === 'resource' && parts[1]) {
-    navigate(getResourceBySlug(parts[1]) ? 'resource' : '404', { slug: parts[1] });
+    const resource = getResourceBySlug(parts[1]);
+    navigate(resource ? 'resource' : '404', { slug: parts[1] });
   } else if (parts.length >= 3) {
     const subjectResources = resourcesBySubject(parts[0], parts[1], parts[2]);
     navigate(subjectResources.length > 0 ? 'subject' : '404', { year: parts[0], sem: parts[1], subject: parts[2] });
