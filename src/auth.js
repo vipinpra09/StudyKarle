@@ -216,7 +216,7 @@ async function handleLogin(event) {
   localStorage.setItem(CURRENT_USER_KEY, email);
   toast(`Welcome back, ${user.name.split(' ')[0]}!`);
   setTimeout(() => {
-    window.location.href = '/';
+    window.location.href = 'index.html';
   }, 700);
   setButtonBusy(button, false);
 }
