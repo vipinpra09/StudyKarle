@@ -183,7 +183,7 @@ The `vercel.json` handles SPA routing automatically.
 | PDF      | 3–8 MB      | 15 MB      |
 | JPG/JPEG | 1–3 MB      | 5 MB       |
 
-> **Tip:** Use <a href="https://smallpdf.com/compress-pdf">Smallpdf</a> or `ghostscript` to compress PDFs before uploading.
+> **Tip:** Use [Smallpdf](https://smallpdf.com/compress-pdf) or `ghostscript` to compress PDFs before uploading.
 
 ---
 

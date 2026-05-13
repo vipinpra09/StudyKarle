@@ -362,12 +362,8 @@ async function handleSignupStep1(e) {
     toast('Please enter a valid email address.', '⚠️');
     return;
   }
-  if (password.length < 8) {
-    toast('Password must be at least 8 characters.', '⚠️');
-    return;
-  }
   if (!isStrongPassword(password)) {
-    toast('Password must be at least 8 characters long.', '⚠️');
+    toast('Password must be at least 8 characters.', '⚠️');
     return;
   }
 
