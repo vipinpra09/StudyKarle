@@ -15,10 +15,10 @@
 </head>
 <body class="auth-body">
 
-  <!-- ===================== HEADER =====================
-       Clean header on auth page: only logo + theme toggle.
-       No duplicate Login/Signup links — the user IS already on the login page.
-  ====================================================== -->
+  <!-- ======================================================
+       Welcome header for StudyKarle.
+       Keep it simple, calm, and focused so users can start fast.
+  ======================================================= -->
   <header class="site-header">
     <div class="container">
       <a class="logo" href="login.html">
@@ -27,7 +27,7 @@
         <span class="logo-by">by Nitish Kumar</span>
       </a>
 
-      <!-- Only theme toggle — no duplicate auth buttons here -->
+      <!-- A clean theme toggle helps users stay comfortable while studying -->
       <div class="header-actions">
         <button class="icon-btn theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
       </div>
@@ -38,7 +38,7 @@
   <main class="auth-main">
     <div class="container">
 
-      <!-- Hero section -->
+      <!-- Friendly welcome section to encourage users to begin their study journey -->
       <div class="auth-hero">
         <div class="auth-eyebrow">🔐 Secure Access</div>
         <h1 class="auth-title">Welcome to <span>StudyKarle</span></h1>
@@ -48,7 +48,7 @@
         </p>
       </div>
 
-      <!-- Two-column card grid -->
+      <!-- Two-column layout for quick signup and easy login -->
       <div class="auth-grid">
 
         <!-- ===== SIGNUP CARD ===== -->
@@ -58,7 +58,7 @@
             <p>Create a new account. OTP verification is required.</p>
           </div>
 
-          <!-- STEP 1: User fills details, clicks "Send OTP" -->
+          <!-- Step 1: Enter details and request an OTP to continue -->
           <div id="signup-step-1">
             <form class="auth-form" id="signup-form" novalidate>
 
@@ -74,20 +74,20 @@
               <input class="auth-input" id="signup-password" type="password"
                      placeholder="At least 8 characters" autocomplete="new-password" />
 
-              <!-- This button sends the OTP; does NOT save the account yet -->
+              <!-- This button starts the secure signup flow by sending the OTP -->
               <button class="btn btn-primary auth-submit" type="submit" id="send-otp-btn">
                 Send OTP to Email
               </button>
 
               <div class="auth-note">
-                🔒 Passwords are stored as SHA-256 hashes — never as plain text.
+                🔒 Your learning space starts here — thank you for joining StudyKarle.
               </div>
             </form>
           </div>
 
-          <!-- STEP 2: OTP verification (shown after OTP is sent) -->
+          <!-- Step 2: OTP verification appears after the code is sent -->
           <div id="signup-step-2" hidden>
-            <!-- Shows which email the OTP was sent to -->
+            <!-- Showing the destination email keeps the verification flow clear -->
             <div class="otp-info-bar">
               📧 OTP sent to <strong id="otp-target-email"></strong>
             </div>
@@ -98,17 +98,17 @@
                      placeholder="e.g. 482931" maxlength="6" inputmode="numeric"
                      autocomplete="one-time-code" />
 
-              <!-- Countdown timer — OTP is only valid for 5 minutes -->
+              <!-- Countdown timer helps users know the OTP validity window -->
               <div class="otp-timer" id="otp-timer">
                 ⏱ OTP expires in <span id="otp-countdown">5:00</span>
               </div>
 
-              <!-- This button verifies OTP and THEN creates the account -->
+              <!-- This button verifies the OTP and completes account creation -->
               <button class="btn btn-primary auth-submit" type="submit" id="verify-otp-btn">
                 Verify OTP &amp; Create Account
               </button>
 
-              <!-- Resend and Cancel links -->
+              <!-- Helpful actions in case the user needs another code or wants to stop -->
               <div class="otp-actions">
                 <button class="btn-link" type="button" id="resend-otp-btn" disabled>
                   Resend OTP
@@ -140,7 +140,7 @@
             <button class="btn btn-primary auth-submit" type="submit">Login</button>
 
             <div class="auth-note">
-              New here? Fill the signup form to create your account first.
+              New here? Fill the signup form to create your account and begin your study journey.
             </div>
           </form>
         </section>
@@ -148,7 +148,7 @@
       </div><!-- /.auth-grid -->
 
       <p class="auth-disclaimer">
-        MVP note: account data is stored locally in your browser. OTP is delivered via EmailJS.
+        StudyKarle is built to grow with you — your data stays in your browser, and EmailJS helps deliver OTPs securely while the platform keeps evolving.
       </p>
     </div>
   </main>
@@ -159,7 +159,7 @@
   <!-- ===================== SCRIPTS ===================== -->
   <!-- EmailJS SDK — used to send the OTP email -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <!-- Main script — auth, OTP, routing all live here -->
+  <!-- Main script — handles auth, OTP, and routing for a smooth experience -->
   <script src="src/script.js"></script>
 
 </body>
