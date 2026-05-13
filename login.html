@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="StudyKarle — Login or create a local account for quick access." />
+  <meta name="description" content="StudyKarle — Login or signup to access your study resources." />
   <meta name="theme-color" content="#2563EB" />
   <title>StudyKarle — Login / Signup</title>
 
@@ -12,97 +12,155 @@
 
   <!-- Favicon (inline SVG as data URI) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
-
-  <!-- EmailJS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
-<body>
+<body class="auth-body">
 
-<!-- ===================== HEADER ===================== -->
-<header class="site-header">
-  <div class="container">
-    <a class="logo" href="index.html">
-      <div class="logo-mark">SK</div>
-      <span class="logo-name">Study<span>Karle</span></span>
-      <span class="logo-by">by Nitish Kumar</span>
-    </a>
+  <!-- ===================== HEADER =====================
+       Clean header on auth page: only logo + theme toggle.
+       No duplicate Login/Signup links — the user IS already on the login page.
+  ====================================================== -->
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="login.html">
+        <div class="logo-mark">SK</div>
+        <span class="logo-name">Study<span>Karle</span></span>
+        <span class="logo-by">by Nitish Kumar</span>
+      </a>
 
-    <div class="header-actions">
-      <button class="icon-btn theme-toggle-btn" id="auth-theme-toggle" title="Toggle theme">🌙</button>
-      <a class="btn btn-outline btn-sm" href="index.html">Back to Home</a>
+      <!-- Only theme toggle — no duplicate auth buttons here -->
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<!-- ===================== MAIN ===================== -->
-<main class="auth-page">
-  <div class="container">
-    <div class="auth-hero">
-      <h1 class="auth-title">Login or Create Your StudyKarle Profile</h1>
-      <p class="auth-subtitle">Beginner-friendly, local-only authentication with secure password hashing.</p>
-    </div>
+  <!-- ===================== MAIN ===================== -->
+  <main class="auth-main">
+    <div class="container">
 
-    <div class="auth-grid">
-      <section class="auth-card">
-        <h2>Signup</h2>
-        <p>Create a local account on this device.</p>
+      <!-- Hero section -->
+      <div class="auth-hero">
+        <div class="auth-eyebrow">🔐 Secure Access</div>
+        <h1 class="auth-title">Welcome to <span>StudyKarle</span></h1>
+        <p class="auth-sub">
+          Create your account with email OTP verification, or log in to continue
+          exploring notes, PYQs, assignments, and tutorials.
+        </p>
+      </div>
 
-        <form class="auth-form" id="signup-form">
-          <div class="auth-field">
-            <label class="auth-label" for="signup-name">Full name</label>
-            <input class="auth-input" id="signup-name" name="name" type="text" placeholder="Your name" autocomplete="name" required />
+      <!-- Two-column card grid -->
+      <div class="auth-grid">
+
+        <!-- ===== SIGNUP CARD ===== -->
+        <section class="auth-card" id="signup-card">
+          <div class="auth-card-head">
+            <h2>Signup</h2>
+            <p>Create a new account. OTP verification is required.</p>
           </div>
-          <div class="auth-field">
-            <label class="auth-label" for="signup-email">Email</label>
-            <input class="auth-input" id="signup-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-          </div>
-          <div class="auth-field">
-            <label class="auth-label" for="signup-password">Password</label>
-            <input class="auth-input" id="signup-password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" required />
-          </div>
-          <p class="auth-note">Passwords are hashed in your browser and stored locally. No passwords are emailed.</p>
-          <div class="auth-actions">
-            <button class="btn btn-primary" type="submit">Sign up</button>
-            <span class="auth-muted">Signup emails are sent via EmailJS.</span>
-          </div>
-        </form>
-      </section>
 
-      <section class="auth-card">
-        <h2>Login</h2>
-        <p>Use the email and password you signed up with.</p>
+          <!-- STEP 1: User fills details, clicks "Send OTP" -->
+          <div id="signup-step-1">
+            <form class="auth-form" id="signup-form" novalidate>
 
-        <form class="auth-form" id="login-form">
-          <div class="auth-field">
+              <label class="auth-label" for="signup-name">Full Name</label>
+              <input class="auth-input" id="signup-name" type="text"
+                     placeholder="Your full name" autocomplete="name" />
+
+              <label class="auth-label" for="signup-email">Email</label>
+              <input class="auth-input" id="signup-email" type="email"
+                     placeholder="you@example.com" autocomplete="email" />
+
+              <label class="auth-label" for="signup-password">Password</label>
+              <input class="auth-input" id="signup-password" type="password"
+                     placeholder="At least 8 characters" autocomplete="new-password" />
+
+              <!-- This button sends the OTP; does NOT save the account yet -->
+              <button class="btn btn-primary auth-submit" type="submit" id="send-otp-btn">
+                Send OTP to Email
+              </button>
+
+              <div class="auth-note">
+                🔒 Passwords are stored as SHA-256 hashes — never as plain text.
+              </div>
+            </form>
+          </div>
+
+          <!-- STEP 2: OTP verification (shown after OTP is sent) -->
+          <div id="signup-step-2" hidden>
+            <!-- Shows which email the OTP was sent to -->
+            <div class="otp-info-bar">
+              📧 OTP sent to <strong id="otp-target-email"></strong>
+            </div>
+
+            <form class="auth-form" id="otp-form" novalidate>
+              <label class="auth-label" for="otp-input">Enter 6-digit OTP</label>
+              <input class="auth-input otp-input-field" id="otp-input" type="text"
+                     placeholder="e.g. 482931" maxlength="6" inputmode="numeric"
+                     autocomplete="one-time-code" />
+
+              <!-- Countdown timer — OTP is only valid for 5 minutes -->
+              <div class="otp-timer" id="otp-timer">
+                ⏱ OTP expires in <span id="otp-countdown">5:00</span>
+              </div>
+
+              <!-- This button verifies OTP and THEN creates the account -->
+              <button class="btn btn-primary auth-submit" type="submit" id="verify-otp-btn">
+                Verify OTP &amp; Create Account
+              </button>
+
+              <!-- Resend and Cancel links -->
+              <div class="otp-actions">
+                <button class="btn-link" type="button" id="resend-otp-btn" disabled>
+                  Resend OTP
+                </button>
+                <button class="btn-link danger" type="button" id="cancel-otp-btn">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ===== LOGIN CARD ===== -->
+        <section class="auth-card">
+          <div class="auth-card-head">
+            <h2>Login</h2>
+            <p>Access your session. Only verified accounts can log in.</p>
+          </div>
+          <form class="auth-form" id="login-form" novalidate>
+
             <label class="auth-label" for="login-email">Email</label>
-            <input class="auth-input" id="login-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-          </div>
-          <div class="auth-field">
+            <input class="auth-input" id="login-email" type="email"
+                   placeholder="you@example.com" autocomplete="email" />
+
             <label class="auth-label" for="login-password">Password</label>
-            <input class="auth-input" id="login-password" name="password" type="password" placeholder="Your password" autocomplete="current-password" required />
-          </div>
-          <div class="auth-actions">
-            <button class="btn btn-primary" type="submit">Log in</button>
-            <span class="auth-muted">Your login stays on this device.</span>
-          </div>
-        </form>
-      </section>
+            <input class="auth-input" id="login-password" type="password"
+                   placeholder="Your password" autocomplete="current-password" />
+
+            <button class="btn btn-primary auth-submit" type="submit">Login</button>
+
+            <div class="auth-note">
+              New here? Fill the signup form to create your account first.
+            </div>
+          </form>
+        </section>
+
+      </div><!-- /.auth-grid -->
+
+      <p class="auth-disclaimer">
+        MVP note: account data is stored locally in your browser. OTP is delivered via EmailJS.
+      </p>
     </div>
-  </div>
-</main>
+  </main>
 
-<!-- ===================== FOOTER ===================== -->
-<footer class="site-footer">
-  <div class="container">
-    Made with ❤️ by <a href="https://www.instagram.com/realnitishkumarr/" target="_blank" rel="noopener noreferrer">Nitish Kumar</a>
-  </div>
-</footer>
+  <!-- ===================== TOAST CONTAINER ===================== -->
+  <div id="toast-container"></div>
 
-<!-- ===================== TOAST CONTAINER ===================== -->
-<div id="toast-container"></div>
-
-<!-- ===================== SCRIPTS ===================== -->
-<script src="src/auth.js"></script>
+  <!-- ===================== SCRIPTS ===================== -->
+  <!-- EmailJS SDK — used to send the OTP email -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <!-- Main script — auth, OTP, routing all live here -->
+  <script src="src/script.js"></script>
 
 </body>
 </html>
