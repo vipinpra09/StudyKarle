@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="StudyKarle — Login or create a local account for quick access." />
+  <meta name="theme-color" content="#2563EB" />
+  <title>StudyKarle — Login / Signup</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="src/styles.css" />
+
+  <!-- Favicon (inline SVG as data URI) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
+
+  <!-- EmailJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="/">
+      <div class="logo-mark">SK</div>
+      <span class="logo-name">Study<span>Karle</span></span>
+      <span class="logo-by">by Nitish Kumar</span>
+    </a>
+
+    <div class="header-actions">
+      <button class="icon-btn theme-toggle-btn" id="auth-theme-toggle" title="Toggle theme">🌙</button>
+      <a class="btn btn-outline btn-sm" href="/">Back to Home</a>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<main class="auth-page">
+  <div class="container">
+    <div class="auth-hero">
+      <h1 class="auth-title">Login or Create Your StudyKarle Profile</h1>
+      <p class="auth-subtitle">Beginner-friendly, local-only authentication with secure password hashing.</p>
+    </div>
+
+    <div class="auth-grid">
+      <section class="auth-card">
+        <h2>Signup</h2>
+        <p>Create a local account on this device.</p>
+
+        <form class="auth-form" id="signup-form">
+          <div class="auth-field">
+            <label class="auth-label" for="signup-name">Full name</label>
+            <input class="auth-input" id="signup-name" name="name" type="text" placeholder="Your name" autocomplete="name" required />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="signup-email">Email</label>
+            <input class="auth-input" id="signup-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="signup-password">Password</label>
+            <input class="auth-input" id="signup-password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" required />
+          </div>
+          <p class="auth-note">Passwords are hashed in your browser and stored locally. No passwords are emailed.</p>
+          <div class="auth-actions">
+            <button class="btn btn-primary" type="submit">Sign up</button>
+            <span class="auth-muted">Signup emails are sent via EmailJS.</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="auth-card">
+        <h2>Login</h2>
+        <p>Use the email and password you signed up with.</p>
+
+        <form class="auth-form" id="login-form">
+          <div class="auth-field">
+            <label class="auth-label" for="login-email">Email</label>
+            <input class="auth-input" id="login-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="login-password">Password</label>
+            <input class="auth-input" id="login-password" name="password" type="password" placeholder="Your password" autocomplete="current-password" required />
+          </div>
+          <div class="auth-actions">
+            <button class="btn btn-primary" type="submit">Log in</button>
+            <span class="auth-muted">Your login stays on this device.</span>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    Made with ❤️ by <a href="https://www.instagram.com/realnitishkumarr/" target="_blank" rel="noopener noreferrer">Nitish Kumar</a>
+  </div>
+</footer>
+
+<!-- ===================== TOAST CONTAINER ===================== -->
+<div id="toast-container"></div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="src/auth.js"></script>
+
+</body>
+</html>

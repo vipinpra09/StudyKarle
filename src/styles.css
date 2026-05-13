@@ -460,6 +460,113 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
 .btn-share:hover { color: var(--text-primary); }
 
 /* ============================================================
+   AUTH PAGE
+   ============================================================ */
+
+.auth-page {
+  padding: 48px 0 64px;
+}
+
+.auth-hero {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.auth-subtitle {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-xs);
+}
+
+.auth-card h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.auth-card p {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.auth-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.auth-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color var(--t), box-shadow var(--t), background var(--t);
+  outline: none;
+}
+
+.auth-input::placeholder { color: var(--text-muted); }
+
+.auth-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+.auth-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.auth-actions {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.auth-muted {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
    FEATURE STRIP
    ============================================================ */
 
@@ -1133,6 +1240,7 @@ main { min-height: calc(100vh - var(--header-h) - 60px); }
   .hero { padding: 32px 0 20px; }
   .hero-title { font-size: 1.65rem; }
   .hero-sub { font-size: 0.95rem; }
+  .auth-page { padding: 32px 0 48px; }
   .feature-strip { gap: 8px; }
   .feature-item { padding: 8px 12px; font-size: 0.8rem; }
   .year-cards { grid-template-columns: 1fr 1fr; }
