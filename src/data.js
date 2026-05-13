@@ -10,7 +10,7 @@ const RESOURCES_DATA = [
   "semester": "sem-1",
   "subject": "engineering-chemistry",
   "category": "notes",
-  "path": "/resources/year1/sem1/engineering-chemistry/Chem_Lab.pdf"
+  "path": "/resources/year1/sem1/engineering-chemistry/"
  },
   {
     "id": "electrical-unit-1-doc-20250213-wa0000-1",
