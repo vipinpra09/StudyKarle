@@ -293,7 +293,7 @@ function clearPendingOTP() {
 /**
  * Starts a visible countdown timer in the OTP step UI.
  * Updates every second and adds an "urgent" class when < 60 s remain.
- * Stops when time runs out and shows an expired message.
+ * Stops when time runs out, disables inputs, and shows an expired message.
  * @param {number} expiresAt - Timestamp (ms) when the OTP expires
  */
 function startOTPCountdown(expiresAt) {
@@ -303,6 +303,8 @@ function startOTPCountdown(expiresAt) {
   const countdownEl = document.getElementById('otp-countdown');
   const timerEl     = document.getElementById('otp-timer');
   const resendBtn   = document.getElementById('resend-otp-btn');
+  const verifyBtn   = document.getElementById('verify-otp-btn');
+  const otpInput    = document.getElementById('otp-input');
 
   function tick() {
     const remaining = expiresAt - Date.now();
@@ -312,8 +314,13 @@ function startOTPCountdown(expiresAt) {
       clearInterval(_otpCountdownInterval);
       clearPendingOTP();
       if (countdownEl) countdownEl.textContent = '0:00';
-      if (timerEl)     timerEl.classList.add('urgent');
-      if (resendBtn)   resendBtn.disabled = false; // allow resend
+      if (timerEl) {
+        timerEl.classList.add('urgent');
+        timerEl.innerHTML = '⏰ OTP Expired';
+      }
+      if (verifyBtn) verifyBtn.disabled = true;
+      if (otpInput) otpInput.disabled = true;
+      if (resendBtn) resendBtn.disabled = false; // allow resend
       toast('OTP expired. Please request a new one.', '⏰');
       return;
     }
@@ -682,16 +689,29 @@ function redirectToPostLogin() {
 
 /**
  * If the user is not logged in, saves the current URL and redirects to login.html.
+ * Checks ALL routes except "/" (home) and "/login.html" (auth pages).
  * Called on every page load of index.html.
  * Returns true if redirect happened (caller should stop rendering).
  */
 function redirectIfLoggedOut() {
+  // Don't check auth on the auth-body pages (login.html)
   if (document.body.classList.contains('auth-body')) return false;
+  
+  // User is logged in, allow access to all pages
   if (getLoggedInUser()) return false;
 
-  const currentPath = buildSafeRedirectPath();
-  localStorage.setItem(REDIRECT_KEY, currentPath);
-  window.location.href = 'login.html';
+  // List of unprotected routes that don't require login
+  const unprotectedRoutes = ['/', '/index.html'];
+  const currentPath = location.pathname;
+  
+  // Check if current path is unprotected
+  if (unprotectedRoutes.includes(currentPath)) return false;
+  
+  // User is NOT logged in and trying to access a protected route
+  // Save the current URL and redirect to login
+  const redirectPath = buildSafeRedirectPath();
+  localStorage.setItem(REDIRECT_KEY, redirectPath);
+  window.location.replace('login.html');
   return true;
 }
 
@@ -717,42 +737,59 @@ function logout() {
  *  - Resend OTP button    → handleResendOTP
  *  - Cancel OTP button    → resetSignupToStep1 + clearPendingOTP
  *  - Login form           → handleLogin
+ *
+ * Each form has its own isolated scope to prevent shared state issues.
+ * Handler functions are responsible for calling preventDefault().
  */
 function setupAuthForms() {
-  // ── Signup Step 1 ──────────────────────────────────────────
-  const signupForm = document.getElementById('signup-form');
-  if (signupForm) {
-    signupForm.addEventListener('submit', handleSignupStep1);
-  }
+  // ── Signup Step 1 (isolated scope) ────────────────────────
+  (() => {
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+      signupForm.addEventListener('submit', handleSignupStep1);
+    }
+  })();
 
-  // ── OTP Step 2 ─────────────────────────────────────────────
-  const otpForm = document.getElementById('otp-form');
-  if (otpForm) {
-    otpForm.addEventListener('submit', handleOTPVerification);
-  }
+  // ── OTP Step 2 (isolated scope) ───────────────────────────
+  (() => {
+    const otpForm = document.getElementById('otp-form');
+    if (otpForm) {
+      otpForm.addEventListener('submit', handleOTPVerification);
+    }
+  })();
 
-  // ── Resend OTP ─────────────────────────────────────────────
-  const resendBtn = document.getElementById('resend-otp-btn');
-  if (resendBtn) {
-    resendBtn.addEventListener('click', handleResendOTP);
-  }
+  // ── Resend OTP (isolated scope) ───────────────────────────
+  (() => {
+    const resendBtn = document.getElementById('resend-otp-btn');
+    if (resendBtn) {
+      resendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleResendOTP();
+      });
+    }
+  })();
 
-  // ── Cancel OTP (go back to Step 1) ─────────────────────────
-  const cancelBtn = document.getElementById('cancel-otp-btn');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-      clearPendingOTP();
-      stopOTPCountdown();
-      resetSignupToStep1();
-      toast('Signup cancelled. Fill the form again to retry.', 'ℹ️');
-    });
-  }
+  // ── Cancel OTP (isolated scope) ──────────────────────────
+  (() => {
+    const cancelBtn = document.getElementById('cancel-otp-btn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearPendingOTP();
+        stopOTPCountdown();
+        resetSignupToStep1();
+        toast('Signup cancelled. Fill the form again to retry.', 'ℹ️');
+      });
+    }
+  })();
 
-  // ── Login form ─────────────────────────────────────────────
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
-  }
+  // ── Login form (isolated scope) ───────────────────────────
+  (() => {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', handleLogin);
+    }
+  })();
 }
 
 /* ============================================================
@@ -961,6 +998,16 @@ function renderBreadcrumbs(crumbs) {
    ============================================================ */
 
 function resourceCardHTML(r, showActions = true) {
+  if (!r || typeof r !== 'object') {
+    console.warn('[StudyKarle] Invalid resource object:', r);
+    return '';
+  }
+  
+  if (!r.path || !r.slug || !r.title) {
+    console.warn('[StudyKarle] Resource missing required fields:', r);
+    return '';
+  }
+
   const catMeta = CATEGORY_META[r.category] || { label: r.category, color: 'cat-notes' };
   const subjMeta = SUBJECTS_META[r.subject] || { label: labelify(r.subject), icon: '📚' };
   return `
@@ -1147,15 +1194,18 @@ function renderSubjectPage() {
    ============================================================ */
 
 function renderResourceList(resources, activeFilter = 'all') {
-  const categories = ['all', ...new Set(resources.map(r => r.category))];
-
-  if (resources.length === 0) {
+  // Filter out null/undefined resources
+  const validResources = resources.filter(r => r && typeof r === 'object' && r.path && r.slug && r.title);
+  
+  if (validResources.length === 0) {
     return `<div class="empty-state">
       <div class="empty-icon">📭</div>
       <div class="empty-title">No resources yet</div>
       <div class="empty-desc">Resources for this section haven't been uploaded. Check back soon!</div>
     </div>`;
   }
+
+  const categories = ['all', ...new Set(validResources.map(r => r.category))];
 
   return `
     <div class="resource-filters" id="resource-filters">
@@ -1168,7 +1218,7 @@ function renderResourceList(resources, activeFilter = 'all') {
       `).join('')}
     </div>
     <div class="resource-list stagger" id="resource-list-container">
-      ${resources.map(r => resourceCardHTML(r)).join('')}
+      ${validResources.map(r => resourceCardHTML(r)).join('')}
     </div>`;
 }
 
@@ -1544,6 +1594,24 @@ function routeFromCurrentURL() {
 }
 
 function init() {
+  // Check for duplicate slugs in resources data
+  const validResources = RESOURCES_DATA.filter(r => r && typeof r === 'object');
+  const slugs = validResources.filter(r => r.slug).map(r => r.slug);
+  
+  // Use Set for O(n) duplicate detection
+  const seen = new Set();
+  const dupes = new Set();
+  for (const slug of slugs) {
+    if (seen.has(slug)) {
+      dupes.add(slug);
+    }
+    seen.add(slug);
+  }
+  
+  if (dupes.size > 0) {
+    console.error('[StudyKarle] Duplicate slugs detected:', Array.from(dupes));
+  }
+
   applyTheme(State.theme);
   initEmailJS();
   setupStaticEventHandlers();
