@@ -40,7 +40,8 @@ async function sendOTPEmail(name, email, otpCode) {
       otp_code: otpCode
     });
     return true;
-  } catch {
+  } catch (error) {
+    console.error('Failed to send OTP email', error);
     return false;
   }
 }
@@ -161,9 +162,16 @@ function initAuthTabs() {
 
       const otpCode = generateOTP();
       sendBtn.disabled = true;
-      const sent = await sendOTPEmail(name, email, otpCode);
-      sendBtn.disabled = false;
-      if (!sent) return;
+      let sent = false;
+      try {
+        sent = await sendOTPEmail(name, email, otpCode);
+      } finally {
+        sendBtn.disabled = false;
+      }
+      if (!sent) {
+        window.alert('Could not send OTP. Please try again.');
+        return;
+      }
 
       pendingSignup = {
         name,
@@ -201,9 +209,14 @@ function initAuthTabs() {
     if (!pendingSignup) return;
     const otpCode = generateOTP();
     resendBtn.disabled = true;
-    const sent = await sendOTPEmail(pendingSignup.name, pendingSignup.email, otpCode);
+    let sent = false;
+    try {
+      sent = await sendOTPEmail(pendingSignup.name, pendingSignup.email, otpCode);
+    } finally {
+      if (!sent) resendBtn.disabled = false;
+    }
     if (!sent) {
-      resendBtn.disabled = false;
+      window.alert('Could not resend OTP. Please try again.');
       return;
     }
     pendingSignup.otpCode = otpCode;
