@@ -1,13 +1,10 @@
 import { getUser, setUser, getRegisteredUsers, saveRegisteredUsers } from './auth.js';
-import { initDarkMode, setTheme } from './ui.js';
-
-const EMAILJS_SERVICE_ID = 'service_jz2ub13';
-const EMAILJS_TEMPLATE_ID = 'template_zplb77e';
-const EMAILJS_PUBLIC_KEY = 'uXIo2Ei6s0b5ceKAa';
+import { initDarkMode, setTheme, showToast } from './ui.js';
 
 let pendingSignup = null;
 let countdownId = null;
 let emailJsInitialized = false;
+let emailJsConfig = null;
 
 async function hashPassword(password, salt) {
   const payload = new TextEncoder().encode(`${salt}:${password}`);
@@ -21,20 +18,38 @@ function generateOTP() {
   return String(data[0]).slice(-6).padStart(6, '0');
 }
 
+function getEmailJsConfig() {
+  if (emailJsConfig) return emailJsConfig;
+  const configEl = document.getElementById('emailjs-config');
+  if (!configEl?.dataset) return null;
+  const config = {
+    serviceId: String(configEl.dataset.serviceId || '').trim(),
+    templateId: String(configEl.dataset.templateId || '').trim(),
+    publicKey: String(configEl.dataset.publicKey || '').trim()
+  };
+  if (!config.serviceId || !config.templateId || !config.publicKey) return null;
+  emailJsConfig = config;
+  return emailJsConfig;
+}
+
 function initEmailJs() {
+  const config = getEmailJsConfig();
+  if (!config) return false;
   if (emailJsInitialized) return true;
   if (!window.emailjs || typeof window.emailjs.init !== 'function' || typeof window.emailjs.send !== 'function') {
     return false;
   }
-  window.emailjs.init(EMAILJS_PUBLIC_KEY);
+  window.emailjs.init(config.publicKey);
   emailJsInitialized = true;
   return true;
 }
 
 async function sendOTPEmail(name, email, otpCode) {
   if (!initEmailJs()) return false;
+  const config = getEmailJsConfig();
+  if (!config) return false;
   try {
-    await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    await window.emailjs.send(config.serviceId, config.templateId, {
       user_name: name,
       user_email: email,
       otp_code: otpCode
@@ -169,7 +184,7 @@ function initAuthTabs() {
         sendBtn.disabled = false;
       }
       if (!sent) {
-        window.alert('Could not send OTP. Please try again.');
+        showToast('Could not send OTP. Please try again.', 'error');
         return;
       }
 
@@ -216,7 +231,7 @@ function initAuthTabs() {
       if (!sent) resendBtn.disabled = false;
     }
     if (!sent) {
-      window.alert('Could not resend OTP. Please try again.');
+      showToast('Could not resend OTP. Please try again.', 'error');
       return;
     }
     pendingSignup.otpCode = otpCode;
