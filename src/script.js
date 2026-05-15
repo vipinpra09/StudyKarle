@@ -181,7 +181,7 @@ function initAuthTabs() {
       try {
         sent = await sendOTPEmail(name, email, otpCode);
       } finally {
-        sendBtn.disabled = false;
+        if (!sent) sendBtn.disabled = false;
       }
       if (!sent) {
         showToast('Could not send OTP. Please try again.', 'error');
