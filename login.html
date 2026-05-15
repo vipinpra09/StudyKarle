@@ -1,188 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K36BGVZZB8"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-K36BGVZZB8');
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K36BGVZZB8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-K36BGVZZB8');
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="StudyKarle — Login or signup to access your study resources." />
   <meta name="theme-color" content="#2563EB" />
   <meta property="og:title" content="StudyKarle — Login" />
   <meta property="og:description" content="Login or signup to access your study resources." />
-  <meta property="og:url" content="https://study-karle-mvp.vercel.app/login.html" />
+  <meta property="og:url" content="https://studykarle.me/login.html" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
+  <meta name="twitter:url" content="https://studykarle.me/login.html" />
+  <link rel="canonical" href="https://studykarle.me/login.html" />
   <title>StudyKarle — Login / Signup</title>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="src/styles.css" />
-
-  <!-- Favicon (inline SVG as data URI) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body class="auth-body">
-
-  <!-- ======================================================
-       Welcome header for StudyKarle.
-       Keep it simple, calm, and focused so users can start fast.
-  ======================================================= -->
-  <header class="site-header">
-    <div class="container">
-      <a class="logo" href="login.html">
-        <div class="logo-mark">SK</div>
-        <span class="logo-name">Study<span>Karle</span></span>
-        <span class="logo-by">by Nitish Kumar</span>
-      </a>
-
-      <!-- A clean theme toggle helps users stay comfortable while studying -->
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle-btn" title="Toggle theme">🌙</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ===================== MAIN ===================== -->
-  <main class="auth-main">
-    <div class="container">
-
-      <!-- Friendly welcome section to encourage users to begin their study journey -->
-      <div class="auth-hero">
-        <div class="auth-eyebrow">🔐 Secure Access</div>
-        <h1 class="auth-title">Welcome to <span>StudyKarle</span></h1>
-        <p class="auth-sub">
-          Create your account with email OTP verification, or log in to continue
-          exploring notes, PYQs, assignments, and tutorials.
-        </p>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-logo">SK</div>
+        <span class="auth-brand-name">StudyKarle</span>
       </div>
 
-      <!-- Two-column layout for quick signup and easy login -->
-      <div class="auth-grid">
+      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button class="auth-tab active" data-tab="login" type="button" role="tab" aria-selected="true">Log in</button>
+        <button class="auth-tab" data-tab="signup" type="button" role="tab" aria-selected="false">Sign up</button>
+      </div>
 
-        <!-- ===== SIGNUP CARD ===== -->
-        <section class="auth-card" id="signup-card">
-          <div class="auth-card-head">
-            <h2>Signup</h2>
-            <p>Create a new account. OTP verification is required.</p>
+      <section class="auth-form" id="login-form-panel">
+        <form id="login-form" novalidate>
+          <div class="input-group">
+            <label class="input-label" for="login-email">Email</label>
+            <input class="input" id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required />
           </div>
-
-          <!-- Step 1: Enter details and request an OTP to continue -->
-          <div id="signup-step-1">
-            <form class="auth-form" id="signup-form" novalidate>
-
-              <label class="auth-label" for="signup-name">Full Name</label>
-              <input class="auth-input" id="signup-name" type="text"
-                     placeholder="Your full name" autocomplete="name" required="" />
-
-              <label class="auth-label" for="signup-email">Email</label>
-              <input class="auth-input" id="signup-email" type="email"
-                     placeholder="you@example.com" autocomplete="email" required="" />
-
-              <label class="auth-label" for="signup-password">Password</label>
-              <input class="auth-input" id="signup-password" type="password"
-                     placeholder="At least 8 characters" autocomplete="new-password" minlength="8" maxlength="128" required="" />
-
-              <!-- This button starts the secure signup flow by sending the OTP -->
-              <button class="btn btn-primary auth-submit" type="submit" id="send-otp-btn">
-                Send OTP to Email
-              </button>
-
-              <div class="auth-note">
-                🔒 Your learning space starts here — thank you for joining StudyKarle.
-              </div>
-            </form>
+          <div class="input-group">
+            <label class="input-label" for="login-password">Password</label>
+            <input class="input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required />
           </div>
+          <button type="submit" class="btn btn-primary auth-submit">Log in</button>
+        </form>
+      </section>
 
-          <!-- Step 2: OTP verification appears after the code is sent -->
-          <div id="signup-step-2" hidden>
-            <!-- Showing the destination email keeps the verification flow clear -->
-            <div class="otp-info-bar">
-              📧 OTP sent to <strong id="otp-target-email"></strong>
+      <section class="auth-form" id="signup-form-panel" hidden>
+        <form id="signup-form" novalidate>
+          <div class="input-group">
+            <label class="input-label" for="signup-name">Full name</label>
+            <input class="input" id="signup-name" type="text" autocomplete="name" placeholder="Your name" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="signup-email">Email</label>
+            <input class="input" id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="signup-password">Password</label>
+            <input class="input" id="signup-password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required />
+          </div>
+          <button type="submit" class="btn btn-primary auth-submit" id="send-otp-btn">Send OTP</button>
+        </form>
+
+        <div id="otp-section" hidden>
+          <p class="otp-info">OTP sent to <strong id="otp-target-email"></strong></p>
+          <form id="otp-form" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="otp-input">Enter OTP</label>
+              <input class="input" id="otp-input" type="text" inputmode="numeric" maxlength="6" minlength="6" placeholder="6-digit code" required />
             </div>
-
-            <form class="auth-form" id="otp-form" novalidate>
-              <label class="auth-label" for="otp-input">Enter 6-digit OTP</label>
-              <input class="auth-input otp-input-field" id="otp-input" type="text"
-                     placeholder="e.g. 482931" maxlength="6" minlength="6"
-                     inputmode="numeric" pattern="[0-9]{6}"
-                     autocomplete="one-time-code" required />
-
-              <!-- Countdown timer helps users know the OTP validity window -->
-              <div class="otp-timer" id="otp-timer">
-                ⏱ OTP expires in <span id="otp-countdown">5:00</span>
-              </div>
-
-              <!-- This button verifies the OTP and completes account creation -->
-              <button class="btn btn-primary auth-submit" type="submit" id="verify-otp-btn">
-                Verify OTP &amp; Create Account
-              </button>
-
-              <!-- Helpful actions in case the user needs another code or wants to stop -->
-              <div class="otp-actions">
-                <button class="btn-link" type="button" id="resend-otp-btn" disabled>
-                  Resend OTP
-                </button>
-                <button class="btn-link danger" type="button" id="cancel-otp-btn">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- ===== LOGIN CARD ===== -->
-        <section class="auth-card" id="login-card">
-          <div class="auth-card-head">
-            <h2>Login</h2>
-            <p>Access your session. Only verified accounts can log in.</p>
-          </div>
-          <form class="auth-form" id="login-form" novalidate>
-
-            <label class="auth-label" for="login-email">Email</label>
-            <input class="auth-input" id="login-email" type="email"
-                   placeholder="you@example.com" autocomplete="email" required="" />
-
-            <label class="auth-label" for="login-password">Password</label>
-            <input class="auth-input" id="login-password" type="password"
-                   placeholder="Your password" autocomplete="current-password" required="" />
-
-            <button class="btn btn-primary auth-submit" type="submit" id="login-btn">Login</button>
-
-            <div class="auth-note">
-              New here? Fill the signup form to create your account and begin your study journey.
-            </div>
+            <p class="otp-timer">OTP expires in <span id="otp-countdown">5:00</span></p>
+            <p class="otp-expired-message" id="otp-expiry-message" hidden></p>
+            <button type="submit" class="btn btn-primary auth-submit" id="verify-otp-btn">Verify OTP &amp; Create Account</button>
           </form>
-        </section>
+        </div>
+      </section>
 
-      </div><!-- /.auth-grid -->
-
-      <p class="auth-disclaimer">
-        StudyKarle is built to grow with you — your account data is stored locally in
-        your device. The platform keeps evolving.
-      </p>
+      <p class="auth-disclaimer">Account data is stored locally on your device.</p>
+      <button type="button" class="btn btn-ghost theme-toggle-btn">Toggle theme</button>
     </div>
-  </main>
+  </div>
 
-  <!-- ===================== TOAST CONTAINER ===================== -->
-  <div id="toast-container"></div>
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- ===================== SCRIPTS ===================== -->
-  <!-- EmailJS SDK — used to send the OTP email -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
-    integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer">
-  </script>
-  <script src="src/data.js?v=1.0" defer></script>
-  <!-- Main script — handles auth, OTP, and routing for a smooth experience -->
-  <script src="src/script.js?v=1.0" defer></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script type="module" src="/src/login.js"></script>
 </body>
 </html>

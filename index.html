@@ -1,149 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K36BGVZZB8"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-K36BGVZZB8');
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K36BGVZZB8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-K36BGVZZB8');
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="StudyKarle — Fast, organized academic resource hub for engineering students. Access notes, PYQs, assignments and tutorials in seconds." />
+  <meta name="description" content="StudyKarle — Fast, organized academic resources for engineering students." />
   <meta name="theme-color" content="#2563EB" />
   <meta property="og:title" content="StudyKarle — Study Resources, Organized Properly." />
   <meta property="og:description" content="Access notes, PYQs, assignments, tutorials, and papers in one simple place." />
-  <meta property="og:url" content="https://study-karle-mvp.vercel.app/">
-  <meta property="og:image" content="https://study-karle-mvp.vercel.app/resources/og-preview.png">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="StudyKarle — Study Resources, Organized Properly.">
-  <meta name="twitter:description" content="Access notes, PYQs, assignments, tutorials, and papers in one simple place.">
-  <meta name="twitter:image" content="https://study-karle-mvp.vercel.app/resources/og-preview.png">
+  <meta property="og:url" content="https://studykarle.me/" />
+  <meta property="og:image" content="https://studykarle.me/resources/og-preview.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="StudyKarle — Study Resources, Organized Properly." />
+  <meta name="twitter:description" content="Access notes, PYQs, assignments, tutorials, and papers in one simple place." />
+  <meta name="twitter:url" content="https://studykarle.me/" />
+  <meta name="twitter:image" content="https://studykarle.me/resources/og-preview.png" />
+  <link rel="canonical" href="https://studykarle.me/" />
   <title>StudyKarle — Study Resources, Organized Properly.</title>
 
-  <link rel="stylesheet" href="src/styles.css" />
-
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
 </head>
 <body>
-<noscript>
-  <div style="text-align:center;padding:4rem 2rem;font-family:sans-serif;">
-    <h2>StudyKarle requires JavaScript</h2>
-    <p>Please enable JavaScript in your browser to use this app.</p>
-    <p><a href="https://www.enable-javascript.com/">How to enable JavaScript</a></p>
-  </div>
-</noscript>
+  <header class="navbar">
+    <div class="navbar-inner app-content">
+      <a class="brand" href="/" data-nav="/">
+        <span class="brand-mark">SK</span>
+        <span class="brand-name">StudyKarle</span>
+      </a>
 
-<!-- ===================== HEADER ===================== -->
-<header class="site-header">
-  <div class="container">
-    <a class="logo" href="/">
-      <div class="logo-mark">SK</div>
-      <span class="logo-name">Study<span>Karle</span></span>
-      <span class="logo-by">by Nitish Kumar</span>
-    </a>
+      <nav class="nav-links desktop-only" aria-label="Primary">
+        <a href="/" data-nav="/" class="nav-link">Home</a>
+        <a href="/search" data-nav="/search" class="nav-link">Search</a>
+      </nav>
 
-    <div class="header-search">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-        </svg>
-        <input
-          class="search-input"
-          id="header-search-input"
-          type="search"
-          placeholder="Search resources, subjects..."
-          autocomplete="off"
-        />
-        <div class="search-results-dropdown" id="header-search-dropdown"></div>
-      </div>
-    </div>
-
-    <div class="header-actions">
-      <button class="icon-btn" title="Search" id="mobile-search-btn">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-
-      <button class="icon-btn theme-toggle-btn" title="Toggle theme">🌙</button>
-
-      <button class="icon-btn" id="settings-btn" title="Settings">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-
-      <div class="auth-actions" id="auth-actions">
-        <a class="btn btn-outline btn-sm" href="/login.html" id="auth-login-btn">Login</a>
-        <div class="auth-user-menu" id="auth-user-menu" hidden>
-          <div class="auth-avatar" id="auth-user-avatar">SK</div>
-          <span class="auth-name" id="auth-user-name">Student</span>
-          <button class="btn btn-outline btn-sm" type="button" id="auth-logout-btn">Logout</button>
+      <div class="nav-actions">
+        <button type="button" class="btn btn-ghost theme-toggle-btn">Theme</button>
+        <a href="/settings" data-nav="/settings" class="nav-link desktop-only">Settings</a>
+        <a href="/login.html" id="auth-login-btn" class="btn btn-secondary">Login</a>
+        <div id="auth-account" class="auth-account" hidden>
+          <span id="auth-user-name" class="auth-user-name">Student</span>
+          <button type="button" id="auth-logout-btn" class="btn btn-secondary">Logout</button>
         </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<!-- ===================== MAIN ===================== -->
-<main id="main">
-  <div class="page" id="page-home"></div>
-  <div class="page" id="page-year"></div>
-  <div class="page" id="page-subject"></div>
-  <div class="page" id="page-resource"></div>
-  <div class="page" id="page-search"></div>
-  <div class="page" id="page-settings"></div>
-  <div class="page" id="page-404"></div>
-</main>
+  <main id="app-root" class="app-content"></main>
 
-<!-- ===================== FOOTER ===================== -->
-<footer class="site-footer">
-  <div class="container">
-    Made with ❤️ by <a href="https://www.instagram.com/realnitishkumarr/" target="_blank" rel="noopener noreferrer">Nitish Kumar</a>
-  </div>
-</footer>
+  <nav class="mobile-nav" aria-label="Mobile">
+    <a href="/" data-nav="/" class="mobile-nav-item">Home</a>
+    <a href="/search" data-nav="/search" class="mobile-nav-item">Search</a>
+    <a href="/settings" data-nav="/settings" class="mobile-nav-item">Settings</a>
+    <a href="/login.html" class="mobile-nav-item">Login</a>
+  </nav>
 
-<!-- ===================== BOTTOM NAV (Mobile) ===================== -->
-<nav class="bottom-nav">
-  <div class="bottom-nav-inner">
-    <button class="bnav-item" data-page="home">
-      <div class="bnav-icon">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-        </svg>
-      </div>
-      Home
-    </button>
-    <button class="bnav-item" data-page="search">
-      <div class="bnav-icon">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-        </svg>
-      </div>
-      Search
-    </button>
-    <button class="bnav-item" data-page="settings">
-      <div class="bnav-icon">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-        </svg>
-      </div>
-      Settings
-    </button>
-  </div>
-</nav>
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-<!-- ===================== TOAST CONTAINER ===================== -->
-<div id="toast-container"></div>
-
-<!-- ===================== SCRIPTS ===================== -->
-<script src="src/data.js?v=1.0" defer></script>
-<script src="src/script.js?v=1.0" defer></script>
-
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
