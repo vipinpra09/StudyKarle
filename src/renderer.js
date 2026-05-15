@@ -82,9 +82,9 @@ function setupButtonNav(button, path) {
 
 function createPageHeader(eyebrow, title, meta) {
   const header = createElement('header', 'page-header');
-  if (eyebrow) header.appendChild(createElement('p', 'page-header-eyebrow', eyebrow));
-  header.appendChild(createElement('h1', 'page-header-title', title));
-  if (meta) header.appendChild(createElement('p', 'page-header-meta', meta));
+  if (eyebrow) header.appendChild(createElement('p', 'page-eyebrow', eyebrow));
+  header.appendChild(createElement('h1', 'page-title', title));
+  if (meta) header.appendChild(createElement('p', 'page-desc', meta));
   return header;
 }
 
@@ -103,12 +103,12 @@ export function createResourceCard(resource) {
   card.href = `/resource/${resource.slug}`;
   setupNavLink(card, `/resource/${resource.slug}`);
 
-  const icon = createElement('div', 'resource-card-icon', fileIcon(resource.type));
-  const body = createElement('div', 'resource-card-body');
-  const title = createElement('h3', 'resource-card-title', resource.title);
-  const meta = createElement('div', 'resource-card-meta');
+  const icon = createElement('div', 'resource-icon', fileIcon(resource.type));
+  const body = createElement('div', 'resource-body');
+  const title = createElement('h3', 'resource-title', resource.title);
+  const meta = createElement('div', 'resource-meta');
 
-  const badge = createElement('span', 'resource-card-badge', categoryLabel(resource.category || 'notes'));
+  const badge = createElement('span', 'badge', categoryLabel(resource.category || 'notes'));
   badge.dataset.category = String(resource.category || 'notes').toLowerCase();
 
   const subjectMeta = SUBJECTS_META[resource.subject] || { label: titleFromSlug(resource.subject || '') };
@@ -202,31 +202,30 @@ export function renderHome() {
   root.textContent = '';
 
   const hero = createElement('section', 'hero');
-  const inner = createElement('div', 'hero-inner');
-
-  inner.appendChild(
-    createElement('span', 'hero-badge', 'Engineering Students · AKTU / GTU / Mumbai University')
+  hero.appendChild(
+    createElement('div', 'hero-badge', 'Engineering · AKTU / GTU / Mumbai University')
   );
-  inner.appendChild(createElement('h1', 'hero-title', 'Your study resources, finally organized.'));
-  inner.appendChild(
+  const heroTitle = createElement('h1', 'hero-title');
+  heroTitle.innerHTML = 'Study smarter.<br>Resources, finally organized.';
+  hero.appendChild(heroTitle);
+  hero.appendChild(
     createElement(
       'p',
-      'hero-subtitle',
+      'hero-sub',
       'Access notes, PYQs, assignments, and tutorials — organized by year, semester, and subject. Find anything in under 10 seconds.'
     )
   );
 
-  const actions = createElement('div', 'hero-actions');
-  const browse = createElement('a', 'btn btn-primary', 'Browse Resources');
+  const actions = createElement('div', 'hero-cta');
+  const browse = createElement('a', 'btn btn-primary btn-lg', 'Browse Resources');
   browse.href = '/year-1';
   setupNavLink(browse, '/year-1');
-  const search = createElement('a', 'btn btn-ghost', 'Search resources →');
+  const search = createElement('a', 'btn btn-secondary btn-lg', 'Search →');
   search.href = '/search';
   setupNavLink(search, '/search');
   actions.append(browse, search);
 
-  inner.appendChild(actions);
-  hero.appendChild(inner);
+  hero.appendChild(actions);
   root.appendChild(hero);
 
   const years = createElement('section');
@@ -238,10 +237,10 @@ export function renderHome() {
     card.href = `/${year.id}`;
     setupNavLink(card, `/${year.id}`);
 
-    const icon = createElement('div', 'resource-card-icon', year.short);
-    const body = createElement('div', 'resource-card-body');
-    body.appendChild(createElement('h3', 'resource-card-title', year.label));
-    body.appendChild(createElement('p', 'resource-card-meta', `${resourcesByYear(year.id).length} resources`));
+      const icon = createElement('div', 'resource-icon', year.short);
+      const body = createElement('div', 'resource-body');
+      body.appendChild(createElement('h3', 'resource-title', year.label));
+      body.appendChild(createElement('p', 'resource-meta', `${resourcesByYear(year.id).length} resources`));
 
     card.append(icon, body);
     grid.appendChild(card);
@@ -283,13 +282,13 @@ export function renderSemPage(year, sem) {
       card.href = `/${year}/${sem}/${subject}`;
       setupNavLink(card, `/${year}/${sem}/${subject}`);
 
-      card.append(
-        createElement('div', 'resource-card-icon', meta.icon),
+        card.append(
+        createElement('div', 'resource-icon', meta.icon),
         (() => {
-          const body = createElement('div', 'resource-card-body');
-          body.appendChild(createElement('h3', 'resource-card-title', meta.label));
+          const body = createElement('div', 'resource-body');
+          body.appendChild(createElement('h3', 'resource-title', meta.label));
           body.appendChild(
-            createElement('p', 'resource-card-meta', `${resourcesBySubject(year, sem, subject).length} resources`)
+            createElement('p', 'resource-meta', `${resourcesBySubject(year, sem, subject).length} resources`)
           );
           return body;
         })()
@@ -354,7 +353,7 @@ export function renderResourceViewer(slug) {
     )
   );
 
-  const actions = createElement('div', 'hero-actions');
+  const actions = createElement('div', 'hero-cta');
   const download = createElement('a', 'btn btn-secondary', 'Download');
   download.href = resource.path;
   download.target = '_blank';

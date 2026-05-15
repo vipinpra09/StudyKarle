@@ -25,45 +25,64 @@
   <link rel="canonical" href="https://studykarle.me/" />
   <title>StudyKarle — Study Resources, Organized Properly.</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563EB'/><text y='22' x='6' font-family='sans-serif' font-weight='700' font-size='16' fill='white'>SK</text></svg>" />
 </head>
 <body>
-  <header class="navbar">
-    <div class="navbar-inner app-content">
-      <a class="brand" href="/" data-nav="/">
-        <span class="brand-mark">SK</span>
-        <span class="brand-name">StudyKarle</span>
+  <nav class="navbar" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand" data-nav="/" data-route="/">
+        <div class="navbar-logo">SK</div>
+        <span class="navbar-name">StudyKarle</span>
       </a>
-
-      <nav class="nav-links desktop-only" aria-label="Primary">
-        <a href="/" data-nav="/" class="nav-link">Home</a>
-        <a href="/search" data-nav="/search" class="nav-link">Search</a>
-      </nav>
-
-      <div class="nav-actions">
-        <button type="button" class="btn btn-ghost theme-toggle-btn">Theme</button>
-        <a href="/settings" data-nav="/settings" class="nav-link desktop-only">Settings</a>
-        <a href="/login.html" id="auth-login-btn" class="btn btn-secondary">Login</a>
-        <div id="auth-account" class="auth-account" hidden>
-          <span id="auth-user-name" class="auth-user-name">Student</span>
-          <button type="button" id="auth-logout-btn" class="btn btn-secondary">Logout</button>
-        </div>
+      <div class="navbar-links">
+        <a href="/" class="nav-link" data-nav="/" data-route="/">Home</a>
+        <a href="/search" class="nav-link" data-nav="/search" data-route="/search">Search</a>
+        <a href="/settings" class="nav-link" data-nav="/settings" data-route="/settings">Settings</a>
+      </div>
+      <div class="navbar-actions">
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+          <span class="icon-sun">☀️</span><span class="icon-moon">🌙</span>
+        </button>
+        <a href="/login.html" class="btn btn-secondary btn-sm" id="nav-auth-btn">Log in</a>
       </div>
     </div>
-  </header>
+  </nav>
 
   <main id="app-root" class="app-content"></main>
 
-  <nav class="mobile-nav" aria-label="Mobile">
-    <a href="/" data-nav="/" class="mobile-nav-item">Home</a>
-    <a href="/search" data-nav="/search" class="mobile-nav-item">Search</a>
-    <a href="/settings" data-nav="/settings" class="mobile-nav-item">Settings</a>
-    <a href="/login.html" class="mobile-nav-item">Login</a>
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <div class="bottom-nav-items">
+      <a href="/" data-nav="/" data-route="/" class="bottom-nav-item">
+        <span class="bottom-nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="/search" data-nav="/search" data-route="/search" class="bottom-nav-item">
+        <span class="bottom-nav-icon">🔍</span>
+        <span>Search</span>
+      </a>
+      <a href="/settings" data-nav="/settings" data-route="/settings" class="bottom-nav-item">
+        <span class="bottom-nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="/login.html" class="bottom-nav-item">
+        <span class="bottom-nav-icon">👤</span>
+        <span>Login</span>
+      </a>
+    </div>
   </nav>
+
+  <footer class="site-footer">
+    <p class="footer-text">
+      Made with <span class="footer-heart">❤️</span> by
+      <a href="https://www.instagram.com/realnitishkumarr/"
+         target="_blank" rel="noopener noreferrer"
+         class="footer-link">Nitish Kumar</a>
+    </p>
+  </footer>
 
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 

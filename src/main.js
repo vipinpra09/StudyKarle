@@ -4,29 +4,32 @@ import { initDarkMode, setTheme } from './ui.js';
 import { RESOURCES_DATA } from './data.js';
 
 function updateHeaderAuth() {
-  const loginButton = document.getElementById('auth-login-btn');
-  const accountWrap = document.getElementById('auth-account');
-  const name = document.getElementById('auth-user-name');
+  const authButton = document.getElementById('nav-auth-btn');
 
   const user = getUser();
-  if (user) {
-    if (loginButton) loginButton.hidden = true;
-    if (accountWrap) accountWrap.hidden = false;
-    if (name) name.textContent = user.name;
-  } else {
-    if (loginButton) loginButton.hidden = false;
-    if (accountWrap) accountWrap.hidden = true;
+  if (authButton) {
+    if (user) {
+      authButton.textContent = user.name || 'Account';
+      authButton.href = '/settings';
+      authButton.setAttribute('data-nav', '/settings');
+      authButton.setAttribute('data-route', '/settings');
+    } else {
+      authButton.textContent = 'Log in';
+      authButton.href = '/login.html';
+      authButton.removeAttribute('data-nav');
+      authButton.removeAttribute('data-route');
+    }
   }
 }
 
 function initNav() {
-  document.querySelectorAll('[data-nav]').forEach((el) => {
-    const path = el.getAttribute('data-nav');
+  document.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-nav]');
+    if (!target) return;
+    const path = target.getAttribute('data-nav');
     if (!path) return;
-    el.addEventListener('click', (event) => {
-      event.preventDefault();
-      navigate(path);
-    });
+    event.preventDefault();
+    navigate(path);
   });
 }
 
