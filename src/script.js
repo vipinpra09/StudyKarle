@@ -1,8 +1,13 @@
 import { getUser, setUser, getRegisteredUsers, saveRegisteredUsers } from './auth.js';
 import { initDarkMode, setTheme } from './ui.js';
 
+const EMAILJS_SERVICE_ID = 'service_jz2ub13';
+const EMAILJS_TEMPLATE_ID = 'template_zplb77e';
+const EMAILJS_PUBLIC_KEY = 'uXIo2Ei6s0b5ceKAa';
+
 let pendingSignup = null;
 let countdownId = null;
+let emailJsInitialized = false;
 
 async function hashPassword(password, salt) {
   const payload = new TextEncoder().encode(`${salt}:${password}`);
@@ -14,6 +19,30 @@ function generateOTP() {
   const data = new Uint32Array(1);
   crypto.getRandomValues(data);
   return String(data[0]).slice(-6).padStart(6, '0');
+}
+
+function initEmailJs() {
+  if (emailJsInitialized) return true;
+  if (!window.emailjs || typeof window.emailjs.init !== 'function' || typeof window.emailjs.send !== 'function') {
+    return false;
+  }
+  window.emailjs.init(EMAILJS_PUBLIC_KEY);
+  emailJsInitialized = true;
+  return true;
+}
+
+async function sendOTPEmail(name, email, otpCode) {
+  if (!initEmailJs()) return false;
+  try {
+    await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      user_name: name,
+      user_email: email,
+      otp_code: otpCode
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function updateThemeIcon() {
@@ -131,6 +160,11 @@ function initAuthTabs() {
       if (users.some((user) => user.email === email)) return;
 
       const otpCode = generateOTP();
+      sendBtn.disabled = true;
+      const sent = await sendOTPEmail(name, email, otpCode);
+      sendBtn.disabled = false;
+      if (!sent) return;
+
       pendingSignup = {
         name,
         email,
@@ -163,9 +197,16 @@ function initAuthTabs() {
     });
   }
 
-  resendBtn?.addEventListener('click', () => {
+  resendBtn?.addEventListener('click', async () => {
     if (!pendingSignup) return;
-    pendingSignup.otpCode = generateOTP();
+    const otpCode = generateOTP();
+    resendBtn.disabled = true;
+    const sent = await sendOTPEmail(pendingSignup.name, pendingSignup.email, otpCode);
+    if (!sent) {
+      resendBtn.disabled = false;
+      return;
+    }
+    pendingSignup.otpCode = otpCode;
     startCountdown();
   });
 
