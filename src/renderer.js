@@ -1,557 +1,499 @@
-/**
- * src/renderer.js
- * Page rendering functions - renders content to the #app-root container
- */
+import { RESOURCES_DATA, CATEGORY_META, SUBJECTS_META, YEARS_META } from './data.js';
+import { searchResources } from './search.js';
+import { getUser, clearUser } from './auth.js';
+import { setTheme } from './ui.js';
 
-// DOM query helpers
-export const $ = (sel, ctx = document) => ctx.querySelector(sel);
-export const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+const CATEGORY_ORDER = ['all', 'notes', 'pyq', 'assignment', 'tutorial', 'paper'];
 
-// ───────────────────────────────────────────────────────────
-// HELPER FUNCTIONS
-// ───────────────────────────────────────────────────────────
+function getRoot() {
+  return document.getElementById('app-root');
+}
 
-function labelify(slug) {
-  return slug
+function createElement(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function titleFromSlug(value = '') {
+  return String(value)
     .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-    .replace(/(\d+)/, ' $1');
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function getYearMeta(year) {
+  return YEARS_META.find((item) => item.id === year) || {
+    id: year,
+    label: titleFromSlug(year),
+    short: titleFromSlug(year),
+    semesters: ['sem-1', 'sem-2'],
+    desc: ''
+  };
 }
 
 function resourcesByYear(year) {
-  return RESOURCES_DATA.filter(r => r.year === year);
+  return RESOURCES_DATA.filter((resource) => resource?.year === year);
 }
 
 function resourcesBySem(year, sem) {
-  return RESOURCES_DATA.filter(r => r.year === year && r.semester === sem);
+  return RESOURCES_DATA.filter((resource) => resource?.year === year && resource?.semester === sem);
 }
 
 function resourcesBySubject(year, sem, subject) {
-  return RESOURCES_DATA.filter(r => r.year === year && r.semester === sem && r.subject === subject);
+  return RESOURCES_DATA.filter(
+    (resource) => resource?.year === year && resource?.semester === sem && resource?.subject === subject
+  );
 }
 
 function uniqueSubjects(year, sem) {
-  const set = new Set();
-  return RESOURCES_DATA
-    .filter(r => r.year === year && r.semester === sem)
-    .filter(r => { if (set.has(r.subject)) return false; set.add(r.subject); return true; });
+  const seen = new Set();
+  const unique = [];
+  for (const resource of resourcesBySem(year, sem)) {
+    if (!resource?.subject || seen.has(resource.subject)) continue;
+    seen.add(resource.subject);
+    unique.push(resource.subject);
+  }
+  return unique;
 }
 
-function getResourceBySlug(slug) {
-  return RESOURCES_DATA.find(r => r.slug === slug) || null;
+function categoryLabel(category) {
+  return CATEGORY_META[category]?.label || titleFromSlug(category);
 }
 
-function fileTypeIcon(type) {
+function fileIcon(type) {
   return type === 'pdf' ? '📄' : '🖼️';
 }
 
-function renderBreadcrumbs(crumbs) {
-  return `<nav class="breadcrumbs">
-    ${crumbs.map((c, i) => {
-      const last = i === crumbs.length - 1;
-      return last
-        ? `<span class="current">${c.label}</span>`
-        : `<a href="#" onclick="return navigate('${c.page}', ${JSON.stringify(c.opts || {})}), false">${c.label}</a>
-           <span class="sep">›</span>`;
-    }).join('')}
-  </nav>`;
-}
-
-/**
- * Creates a resource card HTML string with download action.
- */
-export function createResourceCard(r, showActions = true) {
-  if (!r || typeof r !== 'object') {
-    console.warn('[StudyKarle] Invalid resource object:', r);
-    return '';
-  }
-  
-  if (!r.path || !r.slug || !r.title) {
-    console.warn('[StudyKarle] Resource missing required fields:', r);
-    return '';
-  }
-
-  const catMeta = CATEGORY_META[r.category] || { label: r.category, color: 'cat-notes' };
-  const subjMeta = SUBJECTS_META[r.subject] || { label: labelify(r.subject), icon: '📚' };
-  return `
-    <div class="resource-card" onclick="navigate('resource', { slug: '${r.slug}' })">
-      <div class="rc-file-icon">${fileTypeIcon(r.type)}</div>
-      <div class="rc-info">
-        <div class="rc-title">${r.title}</div>
-        <div class="rc-meta">
-          <span class="rc-badge ${catMeta.color}">${catMeta.label}</span>
-          <span class="rc-type">${r.type.toUpperCase()}</span>
-          <span class="rc-type">${subjMeta.icon} ${subjMeta.label}</span>
-        </div>
-      </div>
-      ${showActions ? `
-      <div class="rc-actions">
-        <button class="btn btn-sm btn-outline btn-icon" title="Download" onclick="handleDownload(event,'${r.path}','${r.slug}')">⬇</button>
-      </div>` : ''}
-    </div>`;
-}
-
-// ───────────────────────────────────────────────────────────
-// PAGE RENDER FUNCTIONS
-// ───────────────────────────────────────────────────────────
-
-/**
- * Renders the home/landing page.
- */
-export function renderHome() {
-  const page = $('#page-home');
-  page.innerHTML = `
-    <div class="container">
-      ${renderBreadcrumbs([{ label: 'StudyKarle' }])}
-
-      <section class="hero fade-up">
-        <div class="hero-eyebrow"><span>📚</span> Engineering Resources</div>
-        <h1 class="hero-title">Study Resources,<br><em>Organized Properly.</em></h1>
-        <p class="hero-sub">Access notes, PYQs, assignments, tutorials, and papers in one simple place.</p>
-        <div class="hero-cta">
-          <button class="btn btn-primary" onclick="document.getElementById('year-section').scrollIntoView({behavior:'smooth'})">
-            📖 Start Studying
-          </button>
-          <button class="btn btn-outline" onclick="navigate('search', {})">
-            🔍 Search Resources
-          </button>
-        </div>
-      </section>
-
-      <div class="feature-strip stagger">
-        <div class="feature-item"><span>⚡</span> Instant Access</div>
-        <div class="feature-item"><span>📱</span> Mobile Friendly</div>
-        <div class="feature-item"><span>📥</span> Free Downloads</div>
-        <div class="feature-item"><span>🗂️</span> Well Organized</div>
-        <div class="feature-item"><span>🌙</span> Dark Mode</div>
-      </div>
-
-      <section id="year-section">
-        <div class="section-head">
-          <div>
-            <div class="section-title">Browse by Year</div>
-            <div class="section-sub">Select your year to get started</div>
-          </div>
-        </div>
-        <div class="year-cards stagger">
-          ${YEARS_META.map(y => `
-            <div class="year-card" onclick="navigate('year', { year: '${y.id}', sem: 'sem-1' })">
-              <div class="yc-badge">${y.short}</div>
-              <div class="yc-title">${y.label}</div>
-              <div class="yc-desc">${y.desc}</div>
-              <div class="yc-footer">
-                <span class="yc-count">${resourcesByYear(y.id).length} resources</span>
-                <span>→</span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-    </div>`;
-
-  page.classList.add('active');
-}
-
-/**
- * Renders a year page showing semesters and resources.
- */
-export function renderYearPage() {
-  const page = $('#page-year');
-  
-  // Get state from global scope
-  const year = typeof State !== 'undefined' ? State.currentYear : null;
-  const sem = typeof State !== 'undefined' ? State.currentSem : 'sem-1';
-  
-  const yearMeta = YEARS_META.find(y => y.id === year);
-  const subjects = uniqueSubjects(year, sem);
-
-  page.innerHTML = `
-    <div class="container">
-      ${renderBreadcrumbs([
-        { label: 'Home', page: 'home', opts: {} },
-        { label: yearMeta ? yearMeta.label : labelify(year) }
-      ])}
-
-      <div class="page-header fade-up">
-        <div class="page-header-title">${yearMeta ? yearMeta.label : labelify(year)}</div>
-        <div class="page-header-sub">${yearMeta ? yearMeta.desc : ''}</div>
-      </div>
-
-      <div class="sem-tabs">
-        ${(yearMeta ? yearMeta.semesters : ['sem-1','sem-2']).map(s => `
-          <button class="sem-tab ${s === sem ? 'active' : ''}"
-            onclick="navigate('year', { year: '${year}', sem: '${s}' })">
-            ${s === 'sem-1' ? 'Semester 1' : 'Semester 2'}
-          </button>
-        `).join('')}
-      </div>
-
-      <div class="section-head">
-        <div>
-          <div class="section-title">Subjects</div>
-          <div class="section-sub">${subjects.length} subject${subjects.length !== 1 ? 's' : ''} available</div>
-        </div>
-      </div>
-
-      ${subjects.length === 0
-        ? `<div class="empty-state fade-up">
-             <div class="empty-icon">📂</div>
-             <div class="empty-title">No subjects yet</div>
-             <div class="empty-desc">No resources have been uploaded for this semester yet. Check back soon!</div>
-           </div>`
-        : `<div class="subject-grid stagger">
-            ${subjects.map(r => {
-              const meta = SUBJECTS_META[r.subject] || { label: labelify(r.subject), icon: '📚' };
-              const count = resourcesBySubject(year, sem, r.subject).length;
-              return `
-                <div class="subject-card" onclick="navigate('subject', { year: '${year}', sem: '${sem}', subject: '${r.subject}' })">
-                  <div class="sc-icon">${meta.icon}</div>
-                  <div class="sc-title">${meta.label}</div>
-                  <div class="sc-count">${count} resource${count !== 1 ? 's' : ''}</div>
-                </div>`;
-            }).join('')}
-          </div>`
-      }
-
-      <div class="section-head" style="margin-top:8px">
-        <div>
-          <div class="section-title">All Resources</div>
-          <div class="section-sub">Sem ${sem === 'sem-1' ? '1' : '2'} · ${resourcesBySem(year, sem).length} total</div>
-        </div>
-      </div>
-
-      ${renderResourceList(resourcesBySem(year, sem))}
-    </div>`;
-
-  page.classList.add('active');
-}
-
-/**
- * Renders a subject page showing resources for a specific subject.
- */
-export function renderSubjectPage() {
-  const page = $('#page-subject');
-  
-  // Get state from global scope
-  const year = typeof State !== 'undefined' ? State.currentYear : null;
-  const sem = typeof State !== 'undefined' ? State.currentSem : null;
-  const subject = typeof State !== 'undefined' ? State.currentSubject : null;
-  
-  const yearMeta = YEARS_META.find(y => y.id === year);
-  const subjMeta = SUBJECTS_META[subject] || { label: labelify(subject), icon: '📚' };
-  const resources = resourcesBySubject(year, sem, subject);
-
-  page.innerHTML = `
-    <div class="container">
-      ${renderBreadcrumbs([
-        { label: 'Home', page: 'home', opts: {} },
-        { label: yearMeta ? yearMeta.label : labelify(year), page: 'year', opts: { year, sem } },
-        { label: 'Sem ' + (sem === 'sem-1' ? '1' : '2'), page: 'year', opts: { year, sem } },
-        { label: subjMeta.label }
-      ])}
-
-      <div class="page-header fade-up">
-        <div class="page-header-title">${subjMeta.icon} ${subjMeta.label}</div>
-        <div class="page-header-sub">${resources.length} resource${resources.length !== 1 ? 's' : ''} available</div>
-      </div>
-
-      ${renderResourceList(resources)}
-    </div>`;
-
-  page.classList.add('active');
-}
-
-/**
- * Renders a list of resources with filter options.
- */
-function renderResourceList(resources, activeFilter = 'all') {
-  // Filter out null/undefined resources
-  const validResources = resources.filter(r => r && typeof r === 'object' && r.path && r.slug && r.title);
-  
-  if (validResources.length === 0) {
-    return `<div class="empty-state">
-      <div class="empty-icon">📭</div>
-      <div class="empty-title">No resources yet</div>
-      <div class="empty-desc">Resources for this section haven't been uploaded. Check back soon!</div>
-    </div>`;
-  }
-
-  const categories = ['all', ...new Set(validResources.map(r => r.category))];
-
-  return `
-    <div class="resource-filters" id="resource-filters">
-      ${categories.map(c => `
-        <button class="filter-chip ${c === activeFilter ? 'active' : ''}"
-          data-filter="${c}"
-          onclick="filterResources('${c}')">
-          ${c === 'all' ? 'All' : (CATEGORY_META[c] ? CATEGORY_META[c].label : labelify(c))}
-        </button>
-      `).join('')}
-    </div>
-    <div class="resource-list stagger" id="resource-list-container">
-      ${validResources.map(r => createResourceCard(r)).join('')}
-    </div>`;
-}
-
-/**
- * Filters resources by category (called from onclick handlers).
- */
-export function filterResources(cat) {
-  // Update active chip
-  $$('#resource-filters .filter-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.filter === cat);
+function setupNavLink(link, path) {
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (window.studykarleNavigate) window.studykarleNavigate(path);
   });
-
-  // Filter cards
-  const container = $('#resource-list-container');
-  if (!container) return;
-  
-  // Regenerate based on current page context
-  let source = [];
-  if (typeof State !== 'undefined') {
-    if (State.currentPage === 'subject') {
-      source = resourcesBySubject(State.currentYear, State.currentSem, State.currentSubject);
-    } else if (State.currentPage === 'year') {
-      source = resourcesBySem(State.currentYear, State.currentSem);
-    }
-  }
-
-  const filtered = cat === 'all' ? source : source.filter(r => r.category === cat);
-  container.innerHTML = filtered.length === 0
-    ? `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No matching resources</div><div class="empty-desc">Try selecting a different filter.</div></div>`
-    : filtered.map(r => createResourceCard(r)).join('');
 }
 
-/**
- * Renders the resource viewer/detail page.
- */
-export function renderResourcePage() {
-  const page = $('#page-resource');
-  const slug = typeof State !== 'undefined' ? State.currentResource : null;
-  const r = getResourceBySlug(slug);
+function setupButtonNav(button, path) {
+  button.addEventListener('click', () => {
+    if (window.studykarleNavigate) window.studykarleNavigate(path);
+  });
+}
 
-  if (!r) {
-    page.innerHTML = `
-      <div class="container">
-        ${renderBreadcrumbs([{ label: 'Home', page: 'home', opts: {} }, { label: 'Resource Not Found' }])}
-        <div class="viewer-error" style="margin-top:40px">
-          <div class="viewer-error-icon">⚠️</div>
-          <h3>Resource Not Found</h3>
-          <p>The resource you're looking for doesn't exist or has been removed.</p>
-          <button class="btn btn-primary" style="margin-top:12px" onclick="navigate('home')">← Go Home</button>
-        </div>
-      </div>`;
-    page.classList.add('active');
+function createPageHeader(eyebrow, title, meta) {
+  const header = createElement('header', 'page-header');
+  if (eyebrow) header.appendChild(createElement('p', 'page-header-eyebrow', eyebrow));
+  header.appendChild(createElement('h1', 'page-header-title', title));
+  if (meta) header.appendChild(createElement('p', 'page-header-meta', meta));
+  return header;
+}
+
+export function createResourceCard(resource) {
+  if (!resource || typeof resource !== 'object') {
+    console.warn('[StudyKarle] Skipping malformed resource entry:', resource);
+    return null;
+  }
+
+  if (!resource.path || !resource.slug || !resource.title) {
+    console.warn('[StudyKarle] Skipping malformed resource entry:', resource);
+    return null;
+  }
+
+  const card = createElement('a', 'resource-card');
+  card.href = `/resource/${resource.slug}`;
+  setupNavLink(card, `/resource/${resource.slug}`);
+
+  const icon = createElement('div', 'resource-card-icon', fileIcon(resource.type));
+  const body = createElement('div', 'resource-card-body');
+  const title = createElement('h3', 'resource-card-title', resource.title);
+  const meta = createElement('div', 'resource-card-meta');
+
+  const badge = createElement('span', 'resource-card-badge', categoryLabel(resource.category || 'notes'));
+  badge.dataset.category = String(resource.category || 'notes').toLowerCase();
+
+  const subjectMeta = SUBJECTS_META[resource.subject] || { label: titleFromSlug(resource.subject || '') };
+  const subject = createElement('span', '', subjectMeta.label);
+
+  meta.append(badge, subject);
+  body.append(title, meta);
+  card.append(icon, body);
+
+  return card;
+}
+
+function renderSkeletonCards(container) {
+  container.textContent = '';
+  for (let i = 0; i < 4; i += 1) {
+    const card = createElement('div', 'skeleton skeleton-card');
+    container.appendChild(card);
+  }
+}
+
+function renderResourceGrid(container, resources) {
+  const cards = resources
+    .map((resource) => createResourceCard(resource))
+    .filter(Boolean);
+
+  container.textContent = '';
+
+  if (cards.length === 0) {
+    const empty = createElement('div', 'empty-state');
+    empty.appendChild(createElement('p', 'empty-state-title', 'No resources found.'));
+    empty.appendChild(
+      createElement('p', 'empty-state-subtitle', 'No valid resources are available for this section yet.')
+    );
+    container.appendChild(empty);
     return;
   }
 
-  const catMeta = CATEGORY_META[r.category] || { label: r.category, color: 'cat-notes' };
-  const subjMeta = SUBJECTS_META[r.subject] || { label: labelify(r.subject), icon: '📚' };
-  const yearMeta = YEARS_META.find(y => y.id === r.year);
-
-  page.innerHTML = `
-    <div class="container">
-      ${renderBreadcrumbs([
-        { label: 'Home', page: 'home', opts: {} },
-        { label: yearMeta ? yearMeta.label : labelify(r.year), page: 'year', opts: { year: r.year, sem: r.semester } },
-        { label: subjMeta.label, page: 'subject', opts: { year: r.year, sem: r.semester, subject: r.subject } },
-        { label: r.title }
-      ])}
-
-      <div class="viewer-header fade-up">
-        <div class="viewer-info">
-          <div class="viewer-title">${r.title}</div>
-          <div class="viewer-meta">
-            <span class="rc-badge ${catMeta.color}">${catMeta.label}</span>
-            <span class="rc-type">${r.type.toUpperCase()}</span>
-            <span class="rc-type">${subjMeta.icon} ${subjMeta.label}</span>
-          </div>
-        </div>
-        <div class="viewer-actions">
-          <button class="btn btn-download btn-sm" onclick="handleDownload(event, '${r.path}', '${r.slug}')">
-            ⬇ Download
-          </button>
-          <button class="btn btn-share btn-sm btn-outline" onclick="handleShare('${r.slug}', '${r.title}')">
-            🔗 Share
-          </button>
-        </div>
-      </div>
-
-      <div class="viewer-frame-wrap fade-up" id="viewer-frame">
-        ${renderViewer(r)}
-      </div>
-    </div>`;
-
-  page.classList.add('active');
+  cards.forEach((card) => container.appendChild(card));
 }
 
-/**
- * Renders the appropriate viewer for a resource (PDF iframe or image).
- */
-function renderViewer(r) {
-  if (r.type === 'pdf') {
-    return `<iframe class="viewer-iframe"
-      src="${r.path}"
-      title="${r.title}"
-      onerror="showViewerError()"
-    ></iframe>`;
+function renderResourceSection(resources) {
+  const wrap = createElement('section');
+  const filterBar = createElement('div', 'filter-bar');
+  const grid = createElement('div', 'resource-grid');
+
+  const validResources = resources.filter((resource) => {
+    if (!resource || typeof resource !== 'object') return false;
+    if (!resource.path || !resource.slug || !resource.title) {
+      console.warn('[StudyKarle] Skipping malformed resource entry:', resource);
+      return false;
+    }
+    return true;
+  });
+
+  const presentCategories = new Set(validResources.map((resource) => resource.category || 'notes'));
+  const categories = CATEGORY_ORDER.filter((category) => category === 'all' || presentCategories.has(category));
+
+  let activeCategory = 'all';
+
+  function rerender() {
+    const filtered =
+      activeCategory === 'all'
+        ? validResources
+        : validResources.filter((resource) => (resource.category || 'notes') === activeCategory);
+    renderSkeletonCards(grid);
+    requestAnimationFrame(() => renderResourceGrid(grid, filtered));
   }
 
-  if (r.type === 'jpg' || r.type === 'jpeg' || r.type === 'image') {
-    return `<img class="viewer-img"
-      src="${r.path}"
-      alt="${r.title}"
-      onerror="showViewerError()"
-    />`;
-  }
-
-  return `<div class="viewer-error">
-    <div class="viewer-error-icon">⚠️</div>
-    <h3>Preview Not Available</h3>
-    <p>This file type cannot be previewed. Download it to view.</p>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="handleDownload(event,'${r.path}','${r.slug}')">⬇ Download File</button>
-  </div>`;
-}
-
-/**
- * Renders the search results page.
- */
-export function renderSearchPage(query = '') {
-  const page = $('#page-search');
-  
-  // Get searchResources from global scope (will be set up by script.js)
-  const searchResources = window.__searchResources || (() => []);
-  const results = query ? searchResources(query) : [];
-
-  page.innerHTML = `
-    <div class="container">
-      ${renderBreadcrumbs([{ label: 'Home', page: 'home', opts: {} }, { label: 'Search' }])}
-
-      <div class="page-header fade-up">
-        <div class="page-header-title">Search Resources</div>
-      </div>
-
-      <div class="search-page-bar">
-        <div class="search-wrap">
-          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-          </svg>
-          <input
-            class="search-input"
-            id="search-page-input"
-            type="search"
-            placeholder="Search notes, PYQs, subjects..."
-            value="${query || ''}"
-            autofocus
-          />
-        </div>
-      </div>
-
-      <div id="search-page-results">
-        ${renderSearchResults(results, query)}
-      </div>
-    </div>`;
-
-  page.classList.add('active');
-
-  // Wire up search
-  const inp = $('#search-page-input');
-  if (inp && window.__searchResources) {
-    inp.addEventListener('input', (e) => {
-      const q = e.target.value;
-      if (typeof State !== 'undefined') State.searchQuery = q;
-      const res = window.__searchResources(q);
-      $('#search-page-results').innerHTML = renderSearchResults(res, q);
+  categories.forEach((category) => {
+    const button = createElement('button', `filter-pill${category === 'all' ? ' active' : ''}`);
+    button.type = 'button';
+    button.textContent = category === 'all' ? 'All' : categoryLabel(category);
+    button.addEventListener('click', () => {
+      activeCategory = category;
+      filterBar.querySelectorAll('.filter-pill').forEach((pill) => pill.classList.remove('active'));
+      button.classList.add('active');
+      rerender();
     });
-    inp.focus();
+    filterBar.appendChild(button);
+  });
+
+  wrap.append(filterBar, grid);
+  rerender();
+  return wrap;
+}
+
+export function renderHome() {
+  const root = getRoot();
+  if (!root) return;
+
+  root.textContent = '';
+
+  const hero = createElement('section', 'hero');
+  const inner = createElement('div', 'hero-inner');
+
+  inner.appendChild(
+    createElement('span', 'hero-badge', 'Engineering Students · AKTU / GTU / Mumbai University')
+  );
+  inner.appendChild(createElement('h1', 'hero-title', 'Your study resources, finally organized.'));
+  inner.appendChild(
+    createElement(
+      'p',
+      'hero-subtitle',
+      'Access notes, PYQs, assignments, and tutorials — organized by year, semester, and subject. Find anything in under 10 seconds.'
+    )
+  );
+
+  const actions = createElement('div', 'hero-actions');
+  const browse = createElement('a', 'btn btn-primary', 'Browse Resources');
+  browse.href = '/year-1';
+  setupNavLink(browse, '/year-1');
+  const search = createElement('a', 'btn btn-ghost', 'Search resources →');
+  search.href = '/search';
+  setupNavLink(search, '/search');
+  actions.append(browse, search);
+
+  inner.appendChild(actions);
+  hero.appendChild(inner);
+  root.appendChild(hero);
+
+  const years = createElement('section');
+  years.appendChild(createPageHeader('Browse', 'Choose your year', 'Select a year to continue.'));
+
+  const grid = createElement('div', 'resource-grid');
+  YEARS_META.forEach((year) => {
+    const card = createElement('a', 'resource-card');
+    card.href = `/${year.id}`;
+    setupNavLink(card, `/${year.id}`);
+
+    const icon = createElement('div', 'resource-card-icon', year.short);
+    const body = createElement('div', 'resource-card-body');
+    body.appendChild(createElement('h3', 'resource-card-title', year.label));
+    body.appendChild(createElement('p', 'resource-card-meta', `${resourcesByYear(year.id).length} resources`));
+
+    card.append(icon, body);
+    grid.appendChild(card);
+  });
+
+  years.appendChild(grid);
+  root.appendChild(years);
+}
+
+export function renderYearPage(year) {
+  renderSemPage(year, 'sem-1');
+}
+
+export function renderSemPage(year, sem) {
+  const root = getRoot();
+  if (!root) return;
+
+  root.textContent = '';
+
+  const yearMeta = getYearMeta(year);
+  root.appendChild(createPageHeader(yearMeta.short, yearMeta.label, yearMeta.desc));
+
+  const semTabs = createElement('div', 'filter-bar');
+  yearMeta.semesters.forEach((semester) => {
+    const tab = createElement('button', `filter-pill${semester === sem ? ' active' : ''}`);
+    tab.type = 'button';
+    tab.textContent = semester.replace('-', ' ').replace('sem', 'Semester');
+    setupButtonNav(tab, `/${year}/${semester}`);
+    semTabs.appendChild(tab);
+  });
+  root.appendChild(semTabs);
+
+  const subjects = uniqueSubjects(year, sem);
+  if (subjects.length > 0) {
+    const subjectGrid = createElement('div', 'resource-grid');
+    subjects.forEach((subject) => {
+      const meta = SUBJECTS_META[subject] || { label: titleFromSlug(subject), icon: '📚' };
+      const card = createElement('a', 'resource-card');
+      card.href = `/${year}/${sem}/${subject}`;
+      setupNavLink(card, `/${year}/${sem}/${subject}`);
+
+      card.append(
+        createElement('div', 'resource-card-icon', meta.icon),
+        (() => {
+          const body = createElement('div', 'resource-card-body');
+          body.appendChild(createElement('h3', 'resource-card-title', meta.label));
+          body.appendChild(
+            createElement('p', 'resource-card-meta', `${resourcesBySubject(year, sem, subject).length} resources`)
+          );
+          return body;
+        })()
+      );
+
+      subjectGrid.appendChild(card);
+    });
+    root.appendChild(subjectGrid);
   }
+
+  root.appendChild(renderResourceSection(resourcesBySem(year, sem)));
 }
 
-/**
- * Renders search results or empty state.
- */
-function renderSearchResults(results, query) {
-  if (!query) return `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Start typing to search</div><div class="empty-desc">Search across all subjects, notes, PYQs, assignments, and more.</div></div>`;
-  if (results.length === 0) return `<div class="empty-state"><div class="empty-icon">😕</div><div class="empty-title">No results found</div><div class="empty-desc">No resources matched "<strong>${query}</strong>". Try a different keyword.</div></div>`;
+export function renderSubjectPage(year, sem, subject) {
+  const root = getRoot();
+  if (!root) return;
 
-  return `
-    <div class="search-stats">${results.length} result${results.length !== 1 ? 's' : ''} for "<strong>${query}</strong>"</div>
-    <div class="resource-list stagger">
-      ${results.map(r => createResourceCard(r)).join('')}
-    </div>`;
+  root.textContent = '';
+
+  const subjectMeta = SUBJECTS_META[subject] || { label: titleFromSlug(subject), icon: '📚' };
+  const resources = resourcesBySubject(year, sem, subject);
+
+  root.appendChild(
+    createPageHeader(
+      `${year.replace('-', ' ')} · ${sem.replace('-', ' ')}`,
+      `${subjectMeta.icon} ${subjectMeta.label}`,
+      `${resources.length} resources`
+    )
+  );
+
+  root.appendChild(renderResourceSection(resources));
 }
 
-/**
- * Renders the settings page with theme toggle and app info.
- */
+export function renderResourceViewer(slug) {
+  const root = getRoot();
+  if (!root) return;
+
+  root.textContent = '';
+
+  const resource = RESOURCES_DATA.find((item) => item?.slug === slug);
+  if (!resource) {
+    const empty = createElement('div', 'empty-state');
+    empty.append(
+      createElement('p', 'empty-state-title', 'Resource not found.'),
+      createElement('p', 'empty-state-subtitle', 'The requested resource does not exist.'),
+      (() => {
+        const button = createElement('button', 'btn btn-primary', 'Go Home');
+        button.type = 'button';
+        setupButtonNav(button, '/');
+        return button;
+      })()
+    );
+    root.appendChild(empty);
+    return;
+  }
+
+  root.appendChild(
+    createPageHeader(
+      `${resource.year.replace('-', ' ')} · ${resource.semester.replace('-', ' ')}`,
+      resource.title,
+      `${categoryLabel(resource.category)} · ${resource.type.toUpperCase()}`
+    )
+  );
+
+  const actions = createElement('div', 'hero-actions');
+  const download = createElement('a', 'btn btn-secondary', 'Download');
+  download.href = resource.path;
+  download.target = '_blank';
+  download.rel = 'noopener';
+
+  const copy = createElement('button', 'btn btn-ghost', 'Copy link');
+  copy.type = 'button';
+  copy.addEventListener('click', async () => {
+    const link = `${window.location.origin}/resource/${resource.slug}`;
+    await navigator.clipboard?.writeText(link);
+  });
+
+  actions.append(download, copy);
+  root.appendChild(actions);
+
+  const viewer = createElement('div', 'viewer');
+  if (resource.type === 'pdf') {
+    const iframe = createElement('iframe');
+    iframe.className = 'resource-viewer';
+    iframe.src = resource.path;
+    iframe.title = resource.title;
+    viewer.appendChild(iframe);
+  } else {
+    const img = createElement('img', 'resource-viewer-image');
+    img.src = resource.path;
+    img.alt = resource.title;
+    viewer.appendChild(img);
+  }
+
+  root.appendChild(viewer);
+}
+
+function renderSearchResultsBlock(results, query) {
+  const block = createElement('section');
+  const count = createElement('p', 'search-count');
+  count.textContent = `Showing ${results.length} results for '${query}'`;
+  block.appendChild(count);
+
+  if (results.length === 0) {
+    const empty = createElement('div', 'empty-state');
+    empty.append(
+      createElement('p', 'empty-state-title', 'No matching resources'),
+      createElement('p', 'empty-state-subtitle', 'Try another keyword or subject name.')
+    );
+    block.appendChild(empty);
+    return block;
+  }
+
+  const grid = createElement('div', 'resource-grid');
+  results.map((resource) => createResourceCard(resource)).filter(Boolean).forEach((card) => grid.appendChild(card));
+  block.appendChild(grid);
+  return block;
+}
+
+export function renderSearchPage(query = '') {
+  const root = getRoot();
+  if (!root) return;
+
+  root.textContent = '';
+  root.appendChild(createPageHeader('Search', 'Find your resources', 'Search by title, subject, or category'));
+
+  const wrapper = createElement('div', 'search-wrapper');
+  const icon = createElement('span', 'search-icon', '⌕');
+  const input = createElement('input', 'search-input');
+  input.type = 'search';
+  input.value = query;
+  input.placeholder = 'Search resources';
+  wrapper.append(icon, input);
+  root.appendChild(wrapper);
+
+  const resultsWrap = createElement('div');
+  const initial = query.trim() ? searchResources(query) : [];
+  resultsWrap.appendChild(renderSearchResultsBlock(initial, query.trim()));
+  root.appendChild(resultsWrap);
+
+  input.addEventListener('input', () => {
+    const nextQuery = input.value.trim();
+    const results = nextQuery ? searchResources(nextQuery) : [];
+    resultsWrap.textContent = '';
+    if (!nextQuery) {
+      const empty = createElement('div', 'empty-state');
+      empty.append(
+        createElement('p', 'empty-state-title', 'Start typing to search'),
+        createElement('p', 'empty-state-subtitle', 'Results will appear instantly as you type.')
+      );
+      resultsWrap.appendChild(empty);
+      if (window.studykarleNavigate) {
+        window.history.replaceState({}, '', '/search');
+      }
+      return;
+    }
+
+    resultsWrap.appendChild(renderSearchResultsBlock(results, nextQuery));
+    window.history.replaceState({}, '', `/search?q=${encodeURIComponent(nextQuery)}`);
+  });
+}
+
 export function renderSettingsPage() {
-  const page = $('#page-settings');
-  const theme = typeof State !== 'undefined' ? State.theme : 'light';
+  const root = getRoot();
+  if (!root) return;
 
-  page.innerHTML = `
-    <div class="container" style="max-width:640px">
-      ${renderBreadcrumbs([{ label: 'Home', page: 'home', opts: {} }, { label: 'Settings' }])}
+  root.textContent = '';
+  root.appendChild(createPageHeader('Settings', 'Preferences', 'Manage theme and session'));
 
-      <div class="page-header fade-up">
-        <div class="page-header-title">Settings</div>
-        <div class="page-header-sub">Manage your preferences</div>
-      </div>
+  const section = createElement('section', 'settings-card');
 
-      <div class="settings-section fade-up">
-        <div class="settings-section-head">Appearance</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">Dark Mode</div>
-            <div class="settings-row-desc">Switch between light and dark theme</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="settings-dark-toggle" ${theme === 'dark' ? 'checked' : ''}
-              onchange="applyTheme(this.checked ? 'dark' : 'light')">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
+  const rowTheme = createElement('div', 'settings-row');
+  const rowThemeText = createElement('div');
+  rowThemeText.append(
+    createElement('p', 'settings-row-title', 'Dark mode'),
+    createElement('p', 'settings-row-subtitle', 'Switch between light and dark appearance')
+  );
 
-      <div class="settings-section fade-up">
-        <div class="settings-section-head">Data</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">Clear Local Data</div>
-            <div class="settings-row-desc">Reset theme preferences and cached data</div>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="clearLocalData()">Clear</button>
-        </div>
-      </div>
+  const themeToggle = createElement('button', 'btn btn-secondary', 'Toggle');
+  themeToggle.type = 'button';
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
 
-      <div class="about-card fade-up">
-        <div class="about-logo">SK</div>
-        <div class="about-name">StudyKarle</div>
-        <div class="about-version">MVP v5 · Built for engineering students</div>
-        <div class="about-desc">A fast, organized, clutter-free academic resource platform. Find and open study resources within seconds.</div>
-        <div style="font-size:0.8rem;color:var(--text-muted)">Made with ❤️ by <a href="https://www.instagram.com/realnitishkumarr/" target="_blank" rel="noopener">Nitish Kumar</a></div>
-      </div>
-    </div>`;
+  rowTheme.append(rowThemeText, themeToggle);
 
-  page.classList.add('active');
-}
+  const rowSession = createElement('div', 'settings-row');
+  const rowSessionText = createElement('div');
+  const user = getUser();
+  rowSessionText.append(
+    createElement('p', 'settings-row-title', user ? `Logged in as ${user.name}` : 'Not logged in'),
+    createElement('p', 'settings-row-subtitle', 'Clear your local session')
+  );
 
-/**
- * Renders the 404 not found page.
- */
-export function render404Page() {
-  const page = document.getElementById('page-404');
-  if (!page) return;
+  const logoutButton = createElement('button', 'btn btn-danger', 'Logout');
+  logoutButton.type = 'button';
+  logoutButton.disabled = !user;
+  logoutButton.addEventListener('click', () => {
+    clearUser();
+    if (window.studykarleNavigate) window.studykarleNavigate('/login.html', { replace: true });
+  });
 
-  page.innerHTML = `
-    <div class="container">
-      <div style="text-align:center; padding:4rem 2rem;">
-        <h2>404 — Page Not Found</h2>
-        <p>The page you're looking for doesn't exist.</p>
-        <button class="btn btn-primary" id="go-home-from-404">Go Home</button>
-      </div>
-    </div>
-  `;
-  page.classList.add('active');
-  page.querySelector('#go-home-from-404')?.addEventListener('click', () => navigate('home'));
+  rowSession.append(rowSessionText, logoutButton);
+  section.append(rowTheme, rowSession);
+  root.appendChild(section);
 }

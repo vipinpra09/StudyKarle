@@ -1,42 +1,47 @@
-/**
- * src/auth.js
- * Authentication module - manages user session and localStorage
- */
-
 const LOGGED_IN_KEY = 'loggedInUser';
+const USERS_KEY = 'users';
 
-/**
- * Retrieves the currently logged-in user object from localStorage.
- * Returns { name, email, createdAt } or null if not logged in.
- */
-export function getUser() {
+function safeParse(raw, fallback) {
   try {
-    const raw = localStorage.getItem(LOGGED_IN_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (err) {
-    console.warn('Failed to parse logged in user', err);
-    return null;
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
   }
 }
 
-/**
- * Saves a user object to localStorage (only safe fields: name, email, createdAt).
- * Never stores passwords.
- */
-export function setUser(userData) {
-  localStorage.setItem(LOGGED_IN_KEY, JSON.stringify(userData));
+export function getUser() {
+  const parsed = safeParse(localStorage.getItem(LOGGED_IN_KEY), null);
+  if (!parsed || typeof parsed !== 'object') return null;
+  if (!parsed.name || !parsed.email) return null;
+  return {
+    name: String(parsed.name),
+    email: String(parsed.email),
+    createdAt: parsed.createdAt || null
+  };
 }
 
-/**
- * Removes the logged-in user from localStorage (used on logout).
- */
+export function setUser(userData) {
+  const payload = {
+    name: String(userData?.name || 'Student').trim(),
+    email: String(userData?.email || '').trim().toLowerCase(),
+    createdAt: userData?.createdAt || new Date().toISOString()
+  };
+  localStorage.setItem(LOGGED_IN_KEY, JSON.stringify(payload));
+}
+
 export function clearUser() {
   localStorage.removeItem(LOGGED_IN_KEY);
 }
 
-/**
- * Checks if a user is currently logged in.
- */
 export function isLoggedIn() {
   return !!getUser();
+}
+
+export function getRegisteredUsers() {
+  const users = safeParse(localStorage.getItem(USERS_KEY), []);
+  return Array.isArray(users) ? users : [];
+}
+
+export function saveRegisteredUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(Array.isArray(users) ? users : []));
 }

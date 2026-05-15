@@ -1,25 +1,25 @@
-/**
- * src/search.js
- * Client-side search functionality
- */
+import { RESOURCES_DATA } from './data.js';
 
-/**
- * Searches through RESOURCES_DATA and returns matching resources.
- * Searches by title, subject, slug, category, year, and semester.
- */
 export function searchResources(query) {
-  if (!query || query.trim().length < 1) return [];
-  const q = query.toLowerCase().trim();
-  
-  // RESOURCES_DATA is defined globally in data.js
-  return RESOURCES_DATA.filter(r => {
+  if (!query || !query.trim()) return [];
+  const q = query.trim().toLowerCase();
+
+  return RESOURCES_DATA.filter((resource) => {
+    if (!resource || typeof resource !== 'object') return false;
+    const title = String(resource.title || '').toLowerCase();
+    const subject = String(resource.subject || '').toLowerCase();
+    const slug = String(resource.slug || '').toLowerCase();
+    const category = String(resource.category || '').toLowerCase();
+    const year = String(resource.year || '').toLowerCase();
+    const semester = String(resource.semester || '').toLowerCase();
+
     return (
-      r.title.toLowerCase().includes(q) ||
-      r.subject.toLowerCase().includes(q) ||
-      r.slug.toLowerCase().includes(q) ||
-      r.category.toLowerCase().includes(q) ||
-      r.year.replace('-', ' ').includes(q) ||
-      r.semester.replace('-', ' ').includes(q)
+      title.includes(q) ||
+      subject.includes(q) ||
+      slug.includes(q) ||
+      category.includes(q) ||
+      year.includes(q) ||
+      semester.includes(q)
     );
   });
 }

@@ -1,66 +1,28 @@
-/**
- * src/ui.js
- * UI utilities - DOM helpers, toast notifications, theme management
- */
+export const $ = (selector, root = document) => root.querySelector(selector);
+export const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-// DOM query helpers
-export const $ = (sel, ctx = document) => ctx.querySelector(sel);
-export const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-
-/**
- * Shows a toast notification message.
- * Auto-dismisses after 3.2 seconds.
- */
-export function showToast(message, type = '✓') {
+export function showToast(message, type = 'info') {
   const container = $('#toast-container');
   if (!container) return;
-  
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span>${type}</span><span>${message}</span>`;
-  container.appendChild(el);
-  
-  setTimeout(() => el.remove(), 3200);
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+
+  const text = document.createElement('span');
+  text.textContent = message;
+  toast.appendChild(text);
+
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
 }
 
-/**
- * Applies a theme to the application.
- * Updates State.theme, DOM attributes, localStorage, and button text.
- */
 export function setTheme(theme) {
-  // Update State (if available in global scope)
-  if (typeof State !== 'undefined') {
-    State.theme = theme;
-  }
-  
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('sk-theme', theme);
-  
-  // Update theme toggle buttons
-  const icon = theme === 'dark' ? '☀️' : '🌙';
-  $$('.theme-toggle-btn').forEach(btn => {
-    btn.textContent = icon;
-    btn.title = theme === 'dark' ? 'Light mode' : 'Dark mode';
-  });
-  
-  // Update settings toggle
-  const toggle = $('#settings-dark-toggle');
-  if (toggle) toggle.checked = theme === 'dark';
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', nextTheme);
+  localStorage.setItem('sk-theme', nextTheme);
 }
 
-/**
- * Toggles between light and dark themes.
- */
-export function toggleTheme() {
-  const currentTheme = localStorage.getItem('sk-theme') || 'light';
-  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-}
-
-/**
- * Initializes dark mode based on localStorage or system preference.
- * Called on page load to set up initial theme.
- */
 export function initDarkMode() {
-  const theme = localStorage.getItem('sk-theme') || 'light';
-  setTheme(theme);
+  const saved = localStorage.getItem('sk-theme');
+  setTheme(saved === 'dark' ? 'dark' : 'light');
 }
