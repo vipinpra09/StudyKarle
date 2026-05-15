@@ -15,18 +15,25 @@ function isProtectedPath(pathname) {
   return !UNPROTECTED_ROUTES.has(pathname);
 }
 
-function applyPageTransition() {
+function animatePageIn() {
   const root = document.getElementById('app-root');
   if (!root) return;
-
-  root.style.opacity = '0';
-  root.style.transform = 'translateY(6px)';
-  root.style.transition = 'none';
+  root.style.cssText = 'opacity:0;transform:translateY(8px);transition:none';
 
   requestAnimationFrame(() => {
-    root.style.transition = 'opacity 200ms ease, transform 200ms ease';
-    root.style.opacity = '1';
-    root.style.transform = 'translateY(0)';
+    root.style.cssText =
+      'opacity:1;transform:translateY(0);transition:opacity 200ms ease,transform 200ms ease';
+  });
+}
+
+function syncActiveNav(pathname) {
+  document.querySelectorAll('[data-route]').forEach((link) => {
+    const route = link.getAttribute('data-route');
+    if (!route) return;
+    const active = route === pathname;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   });
 }
 
@@ -113,7 +120,8 @@ function renderCurrentLocation() {
       break;
   }
 
-  applyPageTransition();
+  syncActiveNav(pathname);
+  animatePageIn();
 }
 
 export function navigate(path, options = {}) {

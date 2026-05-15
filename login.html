@@ -21,77 +21,118 @@
   <link rel="canonical" href="https://studykarle.me/login.html" />
   <title>StudyKarle — Login / Signup</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body class="auth-body">
-  <div class="auth-container">
+
+  <header class="auth-topbar">
+    <a href="/" class="auth-brand">
+      <div class="auth-logo-mark">SK</div>
+      <span class="auth-logo-name">StudyKarle</span>
+    </a>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+      <span id="theme-icon">☀️</span>
+    </button>
+  </header>
+
+  <main class="auth-main">
     <div class="auth-card">
-      <div class="auth-brand">
-        <div class="auth-brand-logo">SK</div>
-        <span class="auth-brand-name">StudyKarle</span>
+
+      <div class="auth-tab-bar" role="tablist">
+        <button class="auth-tab active" role="tab" aria-selected="true"
+                aria-controls="panel-login" data-target="panel-login">Log in</button>
+        <button class="auth-tab" role="tab" aria-selected="false"
+                aria-controls="panel-signup" data-target="panel-signup">Sign up</button>
       </div>
 
-      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
-        <button class="auth-tab active" data-tab="login" type="button" role="tab" aria-selected="true">Log in</button>
-        <button class="auth-tab" data-tab="signup" type="button" role="tab" aria-selected="false">Sign up</button>
-      </div>
-
-      <section class="auth-form" id="login-form-panel">
-        <form id="login-form" novalidate>
+      <!-- LOGIN PANEL -->
+      <div class="auth-panel" id="panel-login" role="tabpanel">
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-subtitle">Log in to access your study resources.</p>
+        <div class="auth-form">
           <div class="input-group">
             <label class="input-label" for="login-email">Email</label>
-            <input class="input" id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+            <input class="input" type="email" id="login-email"
+                   placeholder="you@example.com" autocomplete="email"/>
           </div>
           <div class="input-group">
             <label class="input-label" for="login-password">Password</label>
-            <input class="input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+            <input class="input" type="password" id="login-password"
+                   placeholder="••••••••" autocomplete="current-password"/>
           </div>
-          <button type="submit" class="btn btn-primary auth-submit">Log in</button>
-        </form>
-      </section>
+          <button class="btn btn-primary btn-full" id="login-btn">Log in</button>
+          <p class="auth-hint">No account?
+            <button class="auth-link" data-switch-to="panel-signup" type="button">Sign up free →</button>
+          </p>
+        </div>
+      </div>
 
-      <section class="auth-form" id="signup-form-panel" hidden>
-        <form id="signup-form" novalidate>
+      <!-- SIGNUP PANEL — hidden by default -->
+      <div class="auth-panel" id="panel-signup" role="tabpanel" hidden>
+        <h1 class="auth-title">Create account</h1>
+        <p class="auth-subtitle">OTP verification required. Takes 30 seconds.</p>
+
+        <!-- Step 1 -->
+        <div class="auth-form" id="signup-step-1">
           <div class="input-group">
-            <label class="input-label" for="signup-name">Full name</label>
-            <input class="input" id="signup-name" type="text" autocomplete="name" placeholder="Your name" required />
+            <label class="input-label" for="signup-name">Full Name</label>
+            <input class="input" type="text" id="signup-name"
+                   placeholder="Nitish Kumar" autocomplete="name"/>
           </div>
           <div class="input-group">
             <label class="input-label" for="signup-email">Email</label>
-            <input class="input" id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+            <input class="input" type="email" id="signup-email"
+                   placeholder="you@example.com" autocomplete="email"/>
           </div>
           <div class="input-group">
             <label class="input-label" for="signup-password">Password</label>
-            <input class="input" id="signup-password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required />
+            <input class="input" type="password" id="signup-password"
+                   placeholder="Create a password" autocomplete="new-password"/>
           </div>
-          <button type="submit" class="btn btn-primary auth-submit" id="send-otp-btn">Send OTP</button>
-        </form>
-
-        <div id="otp-section" hidden>
-          <p class="otp-info">OTP sent to <strong id="otp-target-email"></strong></p>
-          <form id="otp-form" novalidate>
-            <div class="input-group">
-              <label class="input-label" for="otp-input">Enter OTP</label>
-              <input class="input" id="otp-input" type="text" inputmode="numeric" maxlength="6" minlength="6" placeholder="6-digit code" required />
-            </div>
-            <p class="otp-timer">OTP expires in <span id="otp-countdown">5:00</span></p>
-            <p class="otp-expired-message" id="otp-expiry-message" hidden></p>
-            <button type="submit" class="btn btn-primary auth-submit" id="verify-otp-btn">Verify OTP &amp; Create Account</button>
-          </form>
+          <button class="btn btn-primary btn-full" id="send-otp-btn">Send OTP to Email</button>
+          <p class="auth-hint">Have an account?
+            <button class="auth-link" data-switch-to="panel-login" type="button">Log in →</button>
+          </p>
         </div>
-      </section>
 
-      <p class="auth-disclaimer">Account data is stored locally on your device.</p>
-      <button type="button" class="btn btn-ghost theme-toggle-btn">Toggle theme</button>
+        <!-- Step 2 — OTP (hidden until OTP sent) -->
+        <div class="auth-form" id="signup-step-2" hidden>
+          <div class="otp-info-box">
+            📬 OTP sent to <strong id="otp-target"></strong>
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="otp-input">6-digit OTP</label>
+            <input class="input input-otp" type="text" id="otp-input"
+                   placeholder="——————" maxlength="6" inputmode="numeric"
+                   autocomplete="one-time-code"/>
+            <div class="otp-row">
+              <span class="otp-timer" id="otp-timer">Expires in 5:00</span>
+              <button class="auth-link otp-resend" id="resend-otp-btn" type="button" disabled>Resend OTP</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" id="verify-otp-btn">Verify &amp; Create Account</button>
+          <button class="btn btn-ghost btn-full" id="cancel-otp-btn">← Back</button>
+        </div>
+      </div>
+
+      <p class="auth-disclaimer">
+        Data is stored locally on your device. Passwords are never sent to a server.
+      </p>
     </div>
-  </div>
+  </main>
 
-  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <footer class="site-footer">
+    <p class="footer-text">
+      Made with <span class="footer-heart">❤️</span> by
+      <a href="https://www.instagram.com/realnitishkumarr/"
+         target="_blank" rel="noopener noreferrer"
+         class="footer-link">Nitish Kumar</a>
+    </p>
+  </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script type="module" src="/src/login.js"></script>
+  <script src="src/script.js" type="module"></script>
 </body>
 </html>
