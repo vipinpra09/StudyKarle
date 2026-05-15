@@ -1,8 +1,10 @@
 import { getUser, setUser, getRegisteredUsers, saveRegisteredUsers } from './auth.js';
-import { initDarkMode, setTheme } from './ui.js';
+import { initDarkMode, setTheme, showToast } from './ui.js';
 
 let pendingSignup = null;
 let countdownId = null;
+let emailJsInitialized = false;
+let emailJsConfig = null;
 
 async function hashPassword(password, salt) {
   const payload = new TextEncoder().encode(`${salt}:${password}`);
@@ -14,6 +16,49 @@ function generateOTP() {
   const data = new Uint32Array(1);
   crypto.getRandomValues(data);
   return String(data[0]).slice(-6).padStart(6, '0');
+}
+
+function getEmailJsConfig() {
+  if (emailJsConfig) return emailJsConfig;
+  const configEl = document.getElementById('emailjs-config');
+  if (!configEl?.dataset) return null;
+  const config = {
+    serviceId: String(configEl.dataset.serviceId || '').trim(),
+    templateId: String(configEl.dataset.templateId || '').trim(),
+    publicKey: String(configEl.dataset.publicKey || '').trim()
+  };
+  if (!config.serviceId || !config.templateId || !config.publicKey) return null;
+  emailJsConfig = config;
+  return emailJsConfig;
+}
+
+function initEmailJs() {
+  const config = getEmailJsConfig();
+  if (!config) return false;
+  if (emailJsInitialized) return true;
+  if (!window.emailjs || typeof window.emailjs.init !== 'function' || typeof window.emailjs.send !== 'function') {
+    return false;
+  }
+  window.emailjs.init(config.publicKey);
+  emailJsInitialized = true;
+  return true;
+}
+
+async function sendOTPEmail(name, email, otpCode) {
+  if (!initEmailJs()) return false;
+  const config = getEmailJsConfig();
+  if (!config) return false;
+  try {
+    await window.emailjs.send(config.serviceId, config.templateId, {
+      user_name: name,
+      user_email: email,
+      otp_code: otpCode
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to send OTP email', error);
+    return false;
+  }
 }
 
 function updateThemeIcon() {
@@ -131,6 +176,18 @@ function initAuthTabs() {
       if (users.some((user) => user.email === email)) return;
 
       const otpCode = generateOTP();
+      sendBtn.disabled = true;
+      let sent = false;
+      try {
+        sent = await sendOTPEmail(name, email, otpCode);
+      } finally {
+        if (!sent) sendBtn.disabled = false;
+      }
+      if (!sent) {
+        showToast('Could not send OTP. Please try again.', 'error');
+        return;
+      }
+
       pendingSignup = {
         name,
         email,
@@ -163,9 +220,21 @@ function initAuthTabs() {
     });
   }
 
-  resendBtn?.addEventListener('click', () => {
+  resendBtn?.addEventListener('click', async () => {
     if (!pendingSignup) return;
-    pendingSignup.otpCode = generateOTP();
+    const otpCode = generateOTP();
+    resendBtn.disabled = true;
+    let sent = false;
+    try {
+      sent = await sendOTPEmail(pendingSignup.name, pendingSignup.email, otpCode);
+    } finally {
+      if (!sent) resendBtn.disabled = false;
+    }
+    if (!sent) {
+      showToast('Could not resend OTP. Please try again.', 'error');
+      return;
+    }
+    pendingSignup.otpCode = otpCode;
     startCountdown();
   });
 
